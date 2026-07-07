@@ -1,0 +1,35 @@
+<div id="grade-mes" class="card-pop border-2 border-black bg-white anim-fade-up">
+    <div class="flex items-center justify-between bg-black text-white px-4 py-2">
+        <button hx-get="{% url 'agenda:calendario' %}?ano={{ ano_anterior }}&mes={{ mes_anterior }}" hx-target="#grade-mes" hx-swap="outerHTML" class="btn-pop border-2 border-white px-2 py-1">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <span class="font-black font-display flex items-center gap-2"><i class="fa-regular fa-calendar"></i> {{ nome_mes|upper }} {{ ano }}</span>
+        <button hx-get="{% url 'agenda:calendario' %}?ano={{ ano_seguinte }}&mes={{ mes_seguinte }}" hx-target="#grade-mes" hx-swap="outerHTML" class="btn-pop border-2 border-white px-2 py-1">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+    <div class="grid grid-cols-7 text-center text-xs font-black border-b-2 border-black">
+        {% for dia_semana in dias_semana %}
+        <div class="py-2 border-r-2 border-black last:border-r-0">{{ dia_semana }}</div>
+        {% endfor %}
+    </div>
+    {% for semana in semanas %}
+    <div class="grid grid-cols-7">
+        {% for dia in semana %}
+        <div class="border-r-2 border-b-2 border-black last:border-r-0 min-h-[70px] p-1 transition-colors duration-150
+                {% if not dia.no_mes %}bg-gray-50 text-gray-300{% elif dia.hoje %}bg-yellow-300{% else %}hover:bg-fuchsia-50{% endif %}
+                {% if dia.no_mes %}cursor-pointer{% endif %}"
+             {% if dia.no_mes %}hx-get="{% url 'agenda:painel_dia' dia.data.year dia.data.month dia.data.day %}" hx-target="#painel-dia" hx-swap="innerHTML"{% endif %}>
+            <p class="text-xs font-bold {% if dia.hoje %}bg-black text-white inline-flex items-center gap-1 px-1{% endif %}">
+                {% if dia.hoje %}<i class="fa-solid fa-star text-[8px]"></i>{% endif %} {{ dia.data.day }}
+            </p>
+            {% for evento in dia.eventos|slice:":2" %}
+            <p class="text-[10px] bg-fuchsia-500 text-white px-1 mt-1 truncate animate-popIn">
+                <i class="fa-solid fa-circle text-[6px]"></i> {{ evento.titulo }}
+            </p>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>

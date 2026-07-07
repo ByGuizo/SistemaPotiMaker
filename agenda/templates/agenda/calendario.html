@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Agenda{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-emerald-400 font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-calendar-days"></i> AGENDA
+    </span>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'agenda:novo_evento' %}" class="btn-pop inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black">
+        <i class="fa-solid fa-plus"></i> NOVO EVENTO
+    </a>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2">
+        {% include "agenda/partials/_grade_mes.html" %}
+    </div>
+    <div class="card-pop border-2 border-black bg-white anim-fade-up" id="painel-dia" style="animation-delay: 150ms">
+        <div class="bg-emerald-400 font-black px-4 py-2 border-b-2 border-black flex items-center gap-2">
+            <i class="fa-regular fa-hand-pointer"></i> SELECIONE UM DIA
+        </div>
+        <p class="p-4 text-sm text-gray-500 flex items-center gap-2">
+            <i class="fa-regular fa-calendar"></i> Clique em um dia no calendário
+        </p>
+    </div>
+</div>
+
+{% endblock %}

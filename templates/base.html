@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{% static 'js/tailwind-config.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="potimaker-bg min-h-screen text-black">
+
+    <header class="bg-white border-b-4 border-black sticky top-0 z-30 anim-slide-down">
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 gap-4 flex-wrap">
+            <a href="{% url 'core:dashboard' %}" class="flex items-center gap-3 group">
+                <span class="bg-fuchsia-500 text-white font-black px-3 py-1 border-2 border-black rotate-badge group-hover:animate-wiggle">
+                    <i class="fa-solid fa-bolt"></i> FABLAB
+                </span>
+                <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black">POTIMAKER</span>
+                <span class="hidden md:inline text-sm text-gray-600 font-medium">Sistema de Gerenciamento</span>
+            </a>
+            <nav class="flex items-center gap-2 flex-wrap">
+                <a href="{% url 'core:dashboard' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-gauge-high"></i> <span class="hidden lg:inline">DASHBOARD</span>
+                </a>
+                <a href="{% url 'inventario:lista_itens' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'inventario' %}bg-yellow-300{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span class="hidden lg:inline">INVENTÁRIO</span>
+                </a>
+                <a href="{% url 'projetos:kanban' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'projetos' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-diagram-project"></i> <span class="hidden lg:inline">PROJETOS</span>
+                </a>
+                <a href="{% url 'usuarios:lista_membros' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.url_name == 'lista_membros' or request.resolver_match.url_name == 'membro_form' %}bg-purple-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-users"></i> <span class="hidden lg:inline">MEMBROS</span>
+                </a>
+                <a href="{% url 'agenda:calendario' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'agenda' %}bg-emerald-400{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-calendar-days"></i> <span class="hidden lg:inline">AGENDA</span>
+                </a>
+            </nav>
+            <div class="flex items-center gap-2">
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'usuarios:perfil' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white">
+                    <i class="fa-solid fa-user-astronaut"></i> {{ request.user.get_full_name|default:request.user.username|upper }}
+                </a>
+                <form method="post" action="{% url 'usuarios:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link px-3 py-2 font-bold border-2 border-black bg-white">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden lg:inline">SAIR</span>
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'usuarios:login' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-fuchsia-500 text-white">
+                    <i class="fa-solid fa-right-to-bracket"></i> ENTRAR
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-purple-700 text-white border-b-4 border-black relative overflow-hidden">
+        <div class="absolute inset-0 hero-shapes pointer-events-none"></div>
+        <div class="max-w-[1400px] mx-auto px-6 py-4 relative z-10 anim-fade-up">
+            <p class="text-xs font-bold tracking-wide uppercase flex items-center gap-2">
+                <i class="fa-solid fa-location-dot"></i> Laboratório de Inovação e Prototipagem — IFRN Campus Canguaretama
+            </p>
+            <p class="text-xl font-black">FAÇA VOCÊ MESMO, <span class="bg-black px-2 inline-block hover:animate-wiggle">SEJA UM MAKER.</span></p>
+        </div>
+    </div>
+
+    {% include "partials/_mensagens.html" %}
+
+    <main class="max-w-[1400px] mx-auto px-6 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t-4 border-black bg-white mt-10">
+        <div class="max-w-[1400px] mx-auto px-6 py-3 flex justify-between text-xs font-bold flex-wrap gap-2">
+            <span><i class="fa-regular fa-copyright"></i> 2026 FABLAB POTIMAKER — IFRN CANGUARETAMA</span>
+            <span><i class="fa-solid fa-hammer"></i> FAÇA VOCÊ MESMO</span>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

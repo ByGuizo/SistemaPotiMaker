@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Inventário{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-boxes-stacked"></i> INVENTÁRIO
+    </span>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'inventario:novo_item' %}" class="btn-pop inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black">
+        <i class="fa-solid fa-plus"></i> ADICIONAR ITEM
+    </a>
+    {% endif %}
+</div>
+
+<form class="card-pop border-2 border-black bg-white p-3 mb-4 flex gap-3 flex-wrap anim-fade-up"
+      hx-get="{% url 'inventario:lista_itens' %}" hx-target="#tabela-itens" hx-swap="outerHTML" hx-trigger="input changed delay:300ms, change" hx-indicator="#busca-indicator">
+    <div class="relative flex-1 min-w-[200px]">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <input type="text" name="q" value="{{ termo }}" placeholder="Buscar item..." class="w-full border-2 border-black pl-9 pr-3 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+    </div>
+    <select name="categoria" class="border-2 border-black px-3 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+        <option value="">Todas as categorias</option>
+        {% for valor, rotulo in categorias %}
+        <option value="{{ valor }}" {% if categoria == valor %}selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+    </select>
+    <select name="status" class="border-2 border-black px-3 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+        <option value="">Todos os status</option>
+        {% for valor, rotulo in status_choices %}
+        <option value="{{ valor }}" {% if status == valor %}selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+    </select>
+    <i class="fa-solid fa-spinner fa-spin htmx-indicator self-center text-fuchsia-500" id="busca-indicator"></i>
+</form>
+
+{% include "inventario/partials/_tabela_itens.html" %}
+
+{% endblock %}

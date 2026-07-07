@@ -1,0 +1,11 @@
+{% if messages %}
+<div class="max-w-[1400px] mx-auto px-6 pt-4 space-y-2">
+    {% for message in messages %}
+    <div class="card-pop stagger-item border-2 border-black px-4 py-2 font-bold flex items-center gap-2
+        {% if message.tags == 'success' %}bg-emerald-400{% elif message.tags == 'error' %}bg-red-400{% else %}bg-yellow-300{% endif %}" style="--i:{{ forloop.counter0 }}">
+        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load potimaker_tags %}
+{% block title %}Meu Perfil{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-purple-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-user-astronaut"></i> MEU PERFIL
+    </span>
+    {% if request.user.is_coordenador %}
+    <a href="{% url 'usuarios:editar_membro' request.user.pk %}" class="btn-pop inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black">
+        <i class="fa-solid fa-pen"></i> EDITAR DADOS
+    </a>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card-pop border-2 border-black bg-white anim-fade-up">
+        <div class="bg-black text-white px-4 py-3 flex items-center gap-2">
+            <i class="fa-solid fa-id-card"></i> DADOS DO MEMBRO
+        </div>
+        <div class="p-5 text-center border-b-2 border-black">
+            <div class="w-20 h-20 mx-auto mb-3 bg-purple-100 border-2 border-black flex items-center justify-center font-black font-display text-3xl">
+                {{ membro.first_name|slice:":1"|upper|default:membro.username|slice:":1"|upper }}
+            </div>
+            <p class="font-black font-display text-lg">{{ membro }}</p>
+            <p class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
+                <i class="fa-solid fa-envelope"></i> {{ membro.email|default:"Sem e-mail cadastrado" }}
+            </p>
+            <div class="flex gap-1 justify-center mt-3 flex-wrap">
+                {% badge membro.tipo "tipo_usuario" membro.get_tipo_display %}
+                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black {% if membro.is_active %}bg-emerald-400{% else %}bg-gray-300{% endif %}">
+                    <i class="fa-solid {% if membro.is_active %}fa-circle-check{% else %}fa-circle-xmark{% endif %}"></i>
+                    {% if membro.is_active %}ATIVO{% else %}INATIVO{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="p-4 space-y-3 text-sm">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-id-badge text-purple-500 w-5"></i>
+                <span class="text-gray-500">Usuário:</span> <span class="font-bold">{{ membro.username }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-hashtag text-purple-500 w-5"></i>
+                <span class="text-gray-500">Matrícula:</span> <span class="font-bold">{{ membro.matricula }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <i class="fa-regular fa-calendar-plus text-purple-500 w-5"></i>
+                <span class="text-gray-500">Membro desde:</span> <span class="font-bold">{{ membro.date_joined|date:"d/m/Y" }}</span>
+            </div>
+            {% if membro.last_login %}
+            <div class="flex items-center gap-2">
+                <i class="fa-regular fa-clock text-purple-500 w-5"></i>
+                <span class="text-gray-500">Último acesso:</span> <span class="font-bold">{{ membro.last_login|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="lg:col-span-2 space-y-6">
+        <div class="card-pop border-2 border-black bg-white anim-fade-up" style="animation-delay: 100ms">
+            <div class="bg-fuchsia-500 text-white px-4 py-3 flex items-center gap-2">
+                <i class="fa-solid fa-diagram-project"></i> MEUS PROJETOS
+                <span class="ml-auto bg-black text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full">{{ projetos|length }}</span>
+            </div>
+            <div class="p-4 space-y-2">
+                {% for projeto in projetos %}
+                <div class="stagger-item flex items-center justify-between border-2 border-black p-3" style="--i:{{ forloop.counter0 }}">
+                    <div>
+                        <p class="font-bold">{{ projeto.nome }}</p>
+                        <p class="text-xs text-gray-500">{{ projeto.get_status_display }}</p>
+                    </div>
+                    {% badge projeto.prioridade "prioridade" projeto.get_prioridade_display %}
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500 flex items-center gap-2 py-2">
+                    <i class="fa-regular fa-folder-open"></i> Você ainda não está em nenhum projeto.
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card-pop border-2 border-black bg-white anim-fade-up" style="animation-delay: 200ms">
+            <div class="bg-emerald-400 px-4 py-3 flex items-center gap-2 font-black">
+                <i class="fa-solid fa-fingerprint"></i> HISTÓRICO DE ENTRADAS
+            </div>
+            <div class="divide-y-2 divide-black max-h-72 overflow-y-auto">
+                {% for registro in registros %}
+                <div class="stagger-item flex items-center justify-between px-4 py-2" style="--i:{{ forloop.counter0 }}">
+                    <span class="text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-to-bracket text-emerald-500"></i>
+                        {{ registro.data_hora|date:"d/m/Y" }}
+                    </span>
+                    <span class="text-xs text-gray-500">{{ registro.data_hora|time:"H:i" }}</span>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500 flex items-center gap-2 px-4 py-3">
+                    <i class="fa-regular fa-face-smile"></i> Nenhum registro de entrada ainda.
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

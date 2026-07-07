@@ -1,0 +1,49 @@
+{% load potimaker_tags %}
+<div id="presenca-painel" class="card-pop border-2 border-black bg-white">
+    <div class="bg-fuchsia-500 text-white px-4 py-2 font-black flex items-center gap-2">
+        <i class="fa-solid fa-fingerprint"></i> REGISTROS DE ENTRADA
+    </div>
+    <div class="p-4 space-y-3">
+        <p class="text-xs font-bold uppercase text-gray-500 flex items-center gap-1"><i class="fa-solid fa-hand-point-right"></i> Marcar presença</p>
+        <form hx-post="{% url 'usuarios:registrar_presenca' %}" hx-target="#presenca-painel" hx-swap="outerHTML" hx-indicator="#presenca-indicator" class="flex gap-2 flex-wrap">
+            {% csrf_token %}
+            <select name="usuario_id" class="flex-1 min-w-[160px] border-2 border-black px-2 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all" required>
+                <option value="">Selecionar membro...</option>
+                {% for membro in membros %}
+                <option value="{{ membro.pk }}">{{ membro }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-pop bg-emerald-400 border-2 border-black px-3 py-2 font-bold flex items-center gap-2">
+                <i class="fa-solid fa-check htmx-indicator" id="presenca-indicator"></i>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> REGISTRAR
+            </button>
+        </form>
+
+        <div class="border-2 border-black divide-y-2 divide-black max-h-72 overflow-y-auto">
+            {% for registro in registros %}
+            <div class="flex items-center justify-between px-3 py-2 stagger-item" style="--i:{{ forloop.counter0 }}">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 flex items-center justify-center bg-purple-100 border-2 border-black text-xs font-black">
+                        {{ registro.usuario.first_name|slice:":1"|upper|default:registro.usuario.username|slice:":1"|upper }}
+                    </span>
+                    <div>
+                        <p class="font-bold text-sm leading-tight">{{ registro.usuario }}</p>
+                        <p class="text-xs text-gray-500 leading-tight">{{ registro.usuario.get_tipo_display }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">{{ registro.data_hora|time:"H:i" }}</p>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black bg-emerald-400">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> ENTRADA
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="px-3 py-3 text-sm text-gray-500 flex items-center gap-2"><i class="fa-regular fa-face-smile"></i> Nenhum registro ainda.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<div id="status-laboratorio" hx-swap-oob="true">
+    {% include "core/partials/_status_laboratorio.html" %}
+</div>

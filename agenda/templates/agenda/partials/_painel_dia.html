@@ -1,0 +1,40 @@
+<div class="bg-emerald-400 font-black px-4 py-2 border-b-2 border-black flex items-center gap-2">
+    <i class="fa-regular fa-hand-pointer"></i> SELECIONE UM DIA
+</div>
+<div class="p-4 anim-fade-up">
+    <p class="font-black font-display mb-3 flex items-center gap-2">
+        <i class="fa-regular fa-calendar"></i> {{ data|date:"d/m/Y" }}
+    </p>
+    {% for evento in eventos %}
+    <div class="card-pop stagger-item border-2 border-black p-3 mb-2" style="--i:{{ forloop.counter0 }}">
+        <p class="font-bold flex items-center gap-2"><i class="fa-solid fa-star text-yellow-500"></i> {{ evento.titulo }}</p>
+        {% if evento.hora_inicio %}
+        <p class="text-xs text-gray-500 flex items-center gap-1">
+            <i class="fa-regular fa-clock"></i> {{ evento.hora_inicio|time:"H:i" }}{% if evento.hora_fim %} - {{ evento.hora_fim|time:"H:i" }}{% endif %}
+        </p>
+        {% endif %}
+        {% if evento.local %}
+        <p class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> {{ evento.local }}</p>
+        {% endif %}
+        {% if evento.descricao %}<p class="text-sm mt-1">{{ evento.descricao }}</p>{% endif %}
+        <div class="flex gap-1 mt-2">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'agenda:editar_evento' evento.pk %}" class="btn-pop bg-yellow-300 border-2 border-black px-2 py-1 text-xs"><i class="fa-solid fa-pen"></i></a>
+            {% endif %}
+            {% if request.user.is_authenticated and request.user.is_coordenador %}
+            <form method="post" action="{% url 'agenda:excluir_evento' evento.pk %}" onsubmit="return confirm('Excluir este evento?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1 text-xs"><i class="fa-solid fa-trash"></i></button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-sm text-gray-500 flex items-center gap-2"><i class="fa-regular fa-calendar-xmark"></i> Nenhum evento neste dia.</p>
+    {% endfor %}
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'agenda:novo_evento' %}?data={{ data|date:'Y-m-d' }}" class="btn-pop inline-flex items-center gap-2 mt-2 bg-fuchsia-500 text-white font-bold px-3 py-2 border-2 border-black">
+        <i class="fa-solid fa-plus"></i> NOVO EVENTO NESTE DIA
+    </a>
+    {% endif %}
+</div>
