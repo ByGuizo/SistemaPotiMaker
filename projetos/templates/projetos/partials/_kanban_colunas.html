@@ -1,0 +1,24 @@
+{% load potimaker_tags %}
+<div id="kanban-colunas" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for coluna in colunas %}
+    <div class="card-pop stagger-item border-2 border-black bg-white" style="--i:{{ forloop.counter0 }}">
+        <div class="flex items-center justify-between px-4 py-2 border-b-2 border-black
+            {% if coluna.valor == 'A_FAZER' %}bg-yellow-300{% elif coluna.valor == 'FAZENDO' %}bg-fuchsia-500 text-white{% else %}bg-emerald-400{% endif %}">
+            <span class="font-black font-display flex items-center gap-2">
+                <i class="fa-solid {% if coluna.valor == 'A_FAZER' %}fa-list-check{% elif coluna.valor == 'FAZENDO' %}fa-person-running{% else %}fa-flag-checkered{% endif %}"></i>
+                {{ coluna.label|upper }}
+            </span>
+            <span class="bg-black text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full">{{ coluna.projetos|length }}</span>
+        </div>
+        <div class="p-3 min-h-[80px]">
+            {% for projeto in coluna.projetos %}
+                {% include "projetos/partials/_card_projeto.html" %}
+            {% empty %}
+            <p class="text-sm text-gray-500 flex items-center gap-2 justify-center py-4">
+                <i class="fa-regular fa-folder-open"></i> Nenhum projeto nesta coluna.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,41 @@
+{% load potimaker_tags %}
+<div id="lista-membros" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for membro in membros %}
+    <div class="card-pop stagger-item border-2 border-black bg-white p-4" style="--i:{{ forloop.counter0 }}">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 border-2 border-black flex items-center justify-center font-black font-display text-lg
+                {% cycle 'bg-purple-100' 'bg-fuchsia-100' 'bg-yellow-100' 'bg-emerald-100' %}">
+                {{ membro.first_name|slice:":1"|upper|default:membro.username|slice:":1"|upper }}
+            </div>
+            <div>
+                <p class="font-black leading-tight font-display">{{ membro }}</p>
+                <p class="text-xs text-gray-500 leading-tight flex items-center gap-1">
+                    <i class="fa-solid fa-envelope"></i> {{ membro.email }}
+                </p>
+            </div>
+        </div>
+        <div class="flex gap-1 mb-3 flex-wrap">
+            {% badge membro.tipo "tipo_usuario" membro.get_tipo_display %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black {% if membro.is_active %}bg-emerald-400{% else %}bg-gray-300{% endif %}">
+                <i class="fa-solid {% if membro.is_active %}fa-circle-check{% else %}fa-circle-xmark{% endif %}"></i>
+                {% if membro.is_active %}ATIVO{% else %}INATIVO{% endif %}
+            </span>
+        </div>
+        {% if request.user.is_authenticated and request.user.is_coordenador %}
+        <div class="flex justify-end gap-1 border-t-2 border-black pt-2">
+            <a href="{% url 'usuarios:editar_membro' membro.pk %}" class="btn-pop bg-yellow-300 border-2 border-black px-2 py-1">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="post" action="{% url 'usuarios:excluir_membro' membro.pk %}" onsubmit="return confirm('Excluir este membro?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p class="text-gray-500 flex items-center gap-2"><i class="fa-solid fa-user-slash"></i> Nenhum membro encontrado.</p>
+    {% endfor %}
+</div>

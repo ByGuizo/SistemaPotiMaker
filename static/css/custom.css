@@ -1,0 +1,119 @@
+.potimaker-bg {
+    background-color: #FCF5E3;
+    background-image: radial-gradient(#00000022 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
+}
+
+h1, h2, h3, .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Cartão com sombra "brutal" que reage ao hover/tap levantando e empurrando a sombra */
+.card-pop {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    box-shadow: 4px 4px 0 0 #000;
+}
+.card-pop:hover {
+    transform: translate(-3px, -3px) rotate(-0.4deg);
+    box-shadow: 7px 7px 0 0 #000;
+}
+.card-pop:active {
+    transform: translate(0, 0);
+    box-shadow: 2px 2px 0 0 #000;
+}
+
+/* Botões com feedback de clique elástico */
+.btn-pop {
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
+    box-shadow: 3px 3px 0 0 #000;
+}
+.btn-pop:hover {
+    transform: translate(-2px, -2px) scale(1.03);
+    box-shadow: 5px 5px 0 0 #000;
+    filter: brightness(1.05);
+}
+.btn-pop:active {
+    transform: translate(1px, 1px) scale(0.97);
+    box-shadow: 1px 1px 0 0 #000;
+}
+
+.nav-link {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.nav-link:hover {
+    transform: translateY(-3px) rotate(-1deg);
+    box-shadow: 3px 4px 0 0 #000;
+}
+
+.rotate-badge {
+    display: inline-block;
+    transform: rotate(-2deg);
+    transition: transform 0.3s ease;
+}
+
+/* Entrada em cascata: aplicar .stagger-item em filhos de um container, JS atribui --i */
+.stagger-item {
+    opacity: 0;
+    animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-fade-up {
+    animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-slide-down {
+    animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Contador que "conta para cima" via JS (classe usada para marcar alvo) */
+.counter-value {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Badge com leve pulso para chamar atenção (ex: HOJE, ALTA prioridade) */
+.pulse-soft {
+    animation: pulseSoft 2s ease-in-out infinite;
+}
+@keyframes pulseSoft {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(224, 31, 184, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(224, 31, 184, 0); }
+}
+
+/* Fundo animado da tela de login */
+.login-bg {
+    background: linear-gradient(120deg, #5B21B6, #E01FB8, #7C3AED, #3DE0D0);
+    background-size: 300% 300%;
+    animation: gradientShift 10s ease infinite;
+}
+.login-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(40px);
+    opacity: 0.55;
+    animation: blobMove 14s ease-in-out infinite;
+}
+
+/* Formas geométricas decorativas atrás da faixa roxa do header */
+.hero-shapes {
+    background-image:
+        radial-gradient(circle at 88% 20%, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 60px, transparent 61px),
+        radial-gradient(circle at 95% 70%, rgba(212,248,74,0.18) 0, rgba(212,248,74,0.18) 90px, transparent 91px),
+        radial-gradient(circle at 78% 90%, rgba(61,224,208,0.15) 0, rgba(61,224,208,0.15) 40px, transparent 41px);
+}
+
+/* Skeleton/spinner leve para indicar carregamento HTMX */
+.htmx-indicator { opacity: 0; transition: opacity 0.2s ease; }
+.htmx-request .htmx-indicator { opacity: 1; }
+.htmx-request.htmx-indicator { opacity: 1; }

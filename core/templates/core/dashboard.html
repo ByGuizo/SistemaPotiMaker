@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-5 relative overflow-hidden" style="--i:0">
+        <i class="fa-solid fa-users absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
+        <p class="text-4xl font-black font-display counter-value">{{ qtd_membros_ativos }}</p>
+        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-user-check"></i> MEMBROS ATIVOS</p>
+    </div>
+    <div class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-5 relative overflow-hidden" style="--i:1">
+        <i class="fa-solid fa-diagram-project absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
+        <p class="text-4xl font-black font-display counter-value">{{ qtd_projetos_andamento }}</p>
+        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-spinner"></i> PROJETOS EM ANDAMENTO</p>
+    </div>
+    <div class="card-pop stagger-item border-2 border-black bg-yellow-300 p-5 relative overflow-hidden" style="--i:2">
+        <i class="fa-solid fa-boxes-stacked absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
+        <p class="text-4xl font-black font-display counter-value">{{ qtd_itens_inventario }}</p>
+        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-warehouse"></i> ITENS NO INVENTÁRIO</p>
+    </div>
+    <div class="card-pop stagger-item border-2 border-black bg-emerald-400 p-5 relative overflow-hidden" style="--i:3">
+        <i class="fa-solid fa-calendar-days absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
+        <p class="text-4xl font-black font-display counter-value">{{ qtd_eventos_semana }}</p>
+        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-clock"></i> EVENTOS ESTA SEMANA</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+        <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-3 py-2 border-2 border-black mb-3 rotate-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ACESSO RÁPIDO
+        </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-4 flex items-center gap-3" style="--i:4">
+                <span class="w-12 h-12 flex items-center justify-center bg-black text-yellow-300 text-xl border-2 border-black">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </span>
+                <div>
+                    <p class="font-black font-display">INVENTÁRIO</p>
+                    <p class="text-sm">Gerencie equipamentos e materiais</p>
+                </div>
+            </a>
+            <a href="{% url 'projetos:kanban' %}" class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-4 flex items-center gap-3" style="--i:5">
+                <span class="w-12 h-12 flex items-center justify-center bg-black text-fuchsia-400 text-xl border-2 border-black">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </span>
+                <div>
+                    <p class="font-black font-display">PROJETOS ATIVOS</p>
+                    <p class="text-sm">Acompanhe projetos em andamento</p>
+                </div>
+            </a>
+            <a href="{% url 'usuarios:lista_membros' %}" class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-4 flex items-center gap-3" style="--i:6">
+                <span class="w-12 h-12 flex items-center justify-center bg-black text-purple-400 text-xl border-2 border-black">
+                    <i class="fa-solid fa-users"></i>
+                </span>
+                <div>
+                    <p class="font-black font-display">MEMBROS</p>
+                    <p class="text-sm">Gerencie membros do laboratório</p>
+                </div>
+            </a>
+            <a href="{% url 'agenda:calendario' %}" class="card-pop stagger-item border-2 border-black bg-emerald-400 p-4 flex items-center gap-3" style="--i:7">
+                <span class="w-12 h-12 flex items-center justify-center bg-black text-emerald-400 text-xl border-2 border-black">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </span>
+                <div>
+                    <p class="font-black font-display">AGENDA</p>
+                    <p class="text-sm">Visualize eventos e reservas</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="anim-fade-up" style="animation-delay: 250ms">
+        {% include "core/partials/_presenca.html" %}
+    </div>
+</div>
+
+<div class="mt-6 anim-fade-up" id="status-laboratorio" style="animation-delay: 350ms">
+    {% include "core/partials/_status_laboratorio.html" %}
+</div>
+
+{% endblock %}

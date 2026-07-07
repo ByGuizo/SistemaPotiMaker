@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Projetos{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-diagram-project"></i> PROJETOS — KANBAN
+    </span>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'projetos:novo_projeto' %}" class="btn-pop inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black">
+        <i class="fa-solid fa-plus"></i> NOVO PROJETO
+    </a>
+    {% endif %}
+</div>
+
+{% include "projetos/partials/_kanban_colunas.html" %}
+
+{% endblock %}

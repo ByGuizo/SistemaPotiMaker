@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Membros{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-purple-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-users"></i> MEMBROS
+    </span>
+    {% if request.user.is_authenticated and request.user.is_coordenador %}
+    <a href="{% url 'usuarios:novo_membro' %}" class="btn-pop inline-flex items-center gap-2 bg-emerald-400 font-black px-4 py-2 border-2 border-black">
+        <i class="fa-solid fa-user-plus"></i> NOVO MEMBRO
+    </a>
+    {% endif %}
+</div>
+
+<form class="card-pop border-2 border-black bg-white p-3 mb-4 flex gap-3 flex-wrap anim-fade-up"
+      hx-get="{% url 'usuarios:lista_membros' %}" hx-target="#lista-membros" hx-swap="outerHTML" hx-trigger="input changed delay:300ms, change" hx-indicator="#busca-membro-indicator">
+    <div class="relative flex-1 min-w-[200px]">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <input type="text" name="q" value="{{ termo }}" placeholder="Buscar membro..." class="w-full border-2 border-black pl-9 pr-3 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+    </div>
+    <select name="tipo" class="border-2 border-black px-3 py-2 focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+        <option value="">Todos os tipos</option>
+        <option value="COORD" {% if tipo == "COORD" %}selected{% endif %}>Coordenador</option>
+        <option value="MEMBRO" {% if tipo == "MEMBRO" %}selected{% endif %}>Membro</option>
+    </select>
+    <i class="fa-solid fa-spinner fa-spin htmx-indicator self-center text-fuchsia-500" id="busca-membro-indicator"></i>
+</form>
+
+{% include "usuarios/partials/_lista_membros.html" %}
+
+{% endblock %}
