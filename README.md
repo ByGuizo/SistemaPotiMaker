@@ -1,6 +1,6 @@
 # FabLab PotiMaker — Sistema de Gerenciamento
 
-Sistema web de gestão para o **Laboratório de Inovação e Prototipagem (FabLab) do IFRN Campus Canguaretama**. Centraliza o controle de inventário, projetos, membros, agenda de eventos e registro de presença do laboratório em um só lugar, com uma identidade visual própria (estilo neo-brutalista, cores vibrantes e animações lúdicas).
+Sistema web de gestão para o **Laboratório de Inovação e Prototipagem (FabLab) do IFRN Campus Canguaretama**. Centraliza o controle de inventário, projetos, membros, agenda de eventos e a escala de horários do laboratório em um só lugar, com uma identidade visual própria (estilo neo-brutalista, cores vibrantes e animações lúdicas).
 
 > "Faça você mesmo, seja um maker."
 
@@ -26,15 +26,15 @@ O PotiMaker é um sistema Django multi-app pensado para o dia a dia de um labora
 
 Existem dois papéis de usuário:
 
-- **Coordenador** — acesso total, incluindo exclusão de itens/projetos/eventos/membros e cadastro de novos membros.
-- **Membro** — pode navegar por todas as telas, cadastrar e editar itens de inventário, projetos e eventos da agenda, e marcar sua própria presença. Não pode excluir registros nem gerenciar outros membros.
+- **Coordenador** — acesso total, incluindo exclusão de itens/projetos/eventos/membros, cadastro de novos membros e edição da escala de horários do laboratório.
+- **Membro** — pode navegar por todas as telas, cadastrar e editar itens de inventário, projetos e eventos da agenda. Não pode excluir registros, gerenciar outros membros nem editar a escala de horários.
 
 ---
 
 ## Funcionalidades
 
 ### Dashboard
-Painel inicial com contadores (membros ativos, projetos em andamento, itens no inventário, eventos da semana), atalhos de acesso rápido, status do laboratório (aberto/fechado, membros com entrada registrada no dia, próximo evento) e o painel de registro de presença — tudo atualizado via HTMX sem recarregar a página.
+Painel inicial com contadores (membros ativos, projetos em andamento, itens no inventário, eventos da semana), atalhos de acesso rápido, o card "Quem deve estar agora" (com base na escala de horários) e o status do laboratório (aberto/fechado, membros com entrada registrada no dia, próximo evento) — tudo atualizado via HTMX sem recarregar a página.
 
 ### Inventário
 Cadastro de itens (equipamentos, ferramentas, consumíveis, componentes eletrônicos) com categoria, quantidade e status (disponível / em uso / em manutenção). Busca e filtros em tempo real.
@@ -51,8 +51,11 @@ Calendário mensal nativo (implementado com o módulo `calendar` do Python, sem 
 ### Perfil do usuário
 Cada usuário logado pode acessar seu próprio perfil (clicando no nome no canto superior do header) para ver seus dados, os projetos em que está envolvido e seu histórico de entradas registradas.
 
-### Registro de presença
-Painel de "bater ponto" simplificado: qualquer membro pode selecionar seu nome e registrar uma entrada. O sistema deriva o status do laboratório (aberto/fechado) e a contagem de membros presentes a partir desses registros.
+### Escala de horários
+Grade fixa semanal (5 dias úteis × 6 horários, replicando o cronograma da equipe gestora do laboratório) que define quem deve estar presente em cada horário. O dashboard mostra automaticamente quem está escalado para o momento atual no card "Quem deve estar agora". Apenas coordenadores podem editar a escala completa, atribuindo um ou mais membros a cada célula da grade.
+
+### Status do laboratório
+Card independente da escala de horários: deriva "aberto/fechado" e a contagem de membros com entrada registrada no dia a partir do histórico real de presença (`RegistroPresenca`) — mostra o que *de fato* aconteceu, enquanto a escala de horários mostra o que *deveria* acontecer.
 
 ---
 
@@ -95,7 +98,6 @@ A autenticação é obrigatória em todo o sistema (via `usuarios.middleware.Log
 | Ação | Membro | Coordenador |
 |---|:---:|:---:|
 | Visualizar dashboard, inventário, projetos, membros, agenda | ✅ | ✅ |
-| Marcar presença própria | ✅ | ✅ |
 | Cadastrar/editar itens do inventário | ✅ | ✅ |
 | Cadastrar/editar projetos | ✅ | ✅ |
 | Cadastrar/editar eventos da agenda | ✅ | ✅ |
@@ -103,6 +105,7 @@ A autenticação é obrigatória em todo o sistema (via `usuarios.middleware.Log
 | Ver e editar o próprio perfil | ✅ | ✅ |
 | Excluir itens, projetos ou eventos | ❌ | ✅ |
 | Cadastrar, editar ou excluir membros | ❌ | ✅ |
+| Editar a escala de horários do laboratório | ❌ | ✅ |
 
 ---
 
@@ -137,7 +140,7 @@ Acesse `http://127.0.0.1:8000/`. Todo o sistema exige login — use o superusuá
 
 ## Dados de exemplo (seed)
 
-O comando `python manage.py seed_demo` popula o banco com usuários, itens de inventário, projetos, eventos e registros de presença de exemplo — útil para testar o sistema sem precisar cadastrar tudo manualmente. É idempotente (pode ser rodado mais de uma vez sem duplicar dados).
+O comando `python manage.py seed_demo` popula o banco com usuários, itens de inventário, projetos, eventos, registros de presença e a escala de horários de exemplo — útil para testar o sistema sem precisar cadastrar tudo manualmente. É idempotente (pode ser rodado mais de uma vez sem duplicar dados).
 
 Todos os usuários criados pelo seed têm a senha `potimaker123`.
 
@@ -146,6 +149,8 @@ Todos os usuários criados pelo seed têm a senha `potimaker123`.
 ## Identidade visual
 
 O design segue uma linha **neo-brutalista**: bordas pretas grossas, sombras sólidas ("brutal shadows"), paleta vibrante (roxo, fúcsia, amarelo, verde-água) sobre um fundo bege pontilhado. As interações têm animações expressivas — cards que saltam ao hover, entradas em cascata, badges com pulso sutil — para dar uma sensação mais lúdica e "maker" ao sistema. A tela de login tem um design próprio, independente do restante do sistema, com fundo em gradiente animado e formas flutuantes.
+
+O layout base usa um sticky footer (`body` como flex container em coluna, `main` com `flex-1`): o rodapé fica sempre fixado ao final da página em todas as telas, independentemente da quantidade de conteúdo.
 
 ---
 

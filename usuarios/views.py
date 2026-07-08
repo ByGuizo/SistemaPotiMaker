@@ -6,12 +6,10 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
-from agenda.services import proximo_evento
-
 from .decorators import coordenador_required
 from .forms import LoginForm, MembroForm
-from .models import RegistroPresenca
-from .services import status_laboratorio
+from .models import HorarioEscala
+from .services import grade_horarios
 
 Usuario = get_user_model()
 
@@ -90,17 +88,21 @@ def perfil(request):
     return render(request, 'usuarios/perfil.html', contexto)
 
 
-@login_required
-def registrar_presenca(request):
+@coordenador_required
+def editar_horarios(request):
     if request.method == 'POST':
-        usuario_id = request.POST.get('usuario_id')
-        usuario = get_object_or_404(Usuario, pk=usuario_id)
-        RegistroPresenca.objects.create(usuario=usuario)
+        for dia_valor, _dia_label in HorarioEscala.DiaSemana.choices:
+            for slot_valor, _slot_label in HorarioEscala.Slot.choices:
+                nome_campo = f'celula_{dia_valor}_{slot_valor}'
+                ids_membros = request.POST.getlist(nome_campo)
+                horario, _criado = HorarioEscala.objects.get_or_create(dia_semana=dia_valor, slot=slot_valor)
+                horario.membros.set(ids_membros)
+        messages.success(request, 'Escala de horários atualizada com sucesso.')
+        return redirect('core:dashboard')
 
     contexto = {
+        'linhas': grade_horarios(),
+        'dias': HorarioEscala.DiaSemana.choices,
         'membros': Usuario.objects.filter(is_active=True).order_by('first_name'),
-        'registros': RegistroPresenca.objects.select_related('usuario')[:10],
-        'status_lab': status_laboratorio(),
-        'proximo_evento': proximo_evento(),
     }
-    return render(request, 'core/partials/_presenca.html', contexto)
+    return render(request, 'usuarios/editar_horarios.html', contexto)

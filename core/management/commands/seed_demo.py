@@ -7,7 +7,7 @@ from django.utils import timezone
 from agenda.models import Evento
 from inventario.models import Item
 from projetos.models import Projeto
-from usuarios.models import RegistroPresenca
+from usuarios.models import HorarioEscala, RegistroPresenca
 
 Usuario = get_user_model()
 
@@ -28,6 +28,19 @@ class Command(BaseCommand):
             ('diego', 'Diego', '', Usuario.Tipo.MEMBRO, '2024007'),
             ('fernanda.oliveira', 'Fernanda', 'Oliveira', Usuario.Tipo.MEMBRO, '2024008'),
             ('lucas.pereira', 'Lucas', 'Pereira', Usuario.Tipo.MEMBRO, '2024009'),
+            # Equipe Gestora 2026.1 do PotiMaker (cronograma de horários)
+            ('luiz.miguel', 'Luiz', 'Miguel', Usuario.Tipo.MEMBRO, '2026001'),
+            ('ronald', 'Ronald', '', Usuario.Tipo.MEMBRO, '2026002'),
+            ('guyllerme', 'Guyllerme', '', Usuario.Tipo.MEMBRO, '2026003'),
+            ('ana.pimentel', 'Ana', 'Pimentel', Usuario.Tipo.MEMBRO, '2026004'),
+            ('adi.hillary', 'Adi', 'Hillary', Usuario.Tipo.MEMBRO, '2026005'),
+            ('luiz.otavio', 'Luiz', 'Otávio', Usuario.Tipo.MEMBRO, '2026006'),
+            ('joao.daniel', 'João', 'Daniel', Usuario.Tipo.MEMBRO, '2026007'),
+            ('joadyson', 'Joadyson', '', Usuario.Tipo.MEMBRO, '2026008'),
+            ('reinaldo', 'Reinaldo', '', Usuario.Tipo.MEMBRO, '2026009'),
+            ('aila', 'Aila', '', Usuario.Tipo.MEMBRO, '2026010'),
+            ('josue', 'Josué', '', Usuario.Tipo.MEMBRO, '2026011'),
+            ('kaenio', 'Kaênio', '', Usuario.Tipo.MEMBRO, '2026012'),
         ]
         usuarios = {}
         for username, nome, sobrenome, tipo, matricula in usuarios_info:
@@ -103,5 +116,55 @@ class Command(BaseCommand):
             if not RegistroPresenca.objects.filter(usuario=usuarios[username]).exists():
                 RegistroPresenca.objects.create(usuario=usuarios[username])
         self.stdout.write(self.style.SUCCESS('Registros de presença de exemplo prontos.'))
+
+        # Escala de horários — Equipe Gestora PotiMaker 2026.1 (cronograma do laboratório)
+        SEG, TER, QUA, QUI, SEX = (
+            HorarioEscala.DiaSemana.SEGUNDA, HorarioEscala.DiaSemana.TERCA,
+            HorarioEscala.DiaSemana.QUARTA, HorarioEscala.DiaSemana.QUINTA, HorarioEscala.DiaSemana.SEXTA,
+        )
+        M1, M2, M3 = HorarioEscala.Slot.M1, HorarioEscala.Slot.M2, HorarioEscala.Slot.M3
+        T1, T2, T3 = HorarioEscala.Slot.T1, HorarioEscala.Slot.T2, HorarioEscala.Slot.T3
+
+        escala_info = [
+            (SEG, M1, ['luiz.miguel']),
+            (TER, M1, ['ana.pimentel', 'guyllerme']),
+            (QUA, M1, ['luiz.otavio', 'adi.hillary']),
+            (QUI, M1, ['ana.pimentel', 'guyllerme']),
+            (SEX, M1, ['luiz.miguel']),
+
+            (SEG, M2, ['luiz.miguel']),
+            (TER, M2, ['ana.pimentel', 'guyllerme']),
+            (QUA, M2, ['luiz.otavio', 'adi.hillary']),
+            (QUI, M2, ['ana.pimentel', 'guyllerme']),
+            (SEX, M2, ['luiz.miguel', 'ana.pimentel']),
+
+            (SEG, M3, ['luiz.miguel', 'ronald']),
+            (TER, M3, ['guyllerme']),
+            (QUA, M3, ['luiz.otavio', 'adi.hillary']),
+            (QUI, M3, ['ana.pimentel', 'guyllerme']),
+            (SEX, M3, ['luiz.miguel', 'ronald']),
+
+            (SEG, T1, ['joao.daniel', 'aila']),
+            (TER, T1, ['joadyson', 'reinaldo']),
+            (QUA, T1, ['byguizo', 'diego']),
+            (QUI, T1, ['aila', 'diego']),
+            (SEX, T1, ['reinaldo', 'aila']),
+
+            (SEG, T2, ['joao.daniel', 'reinaldo']),
+            (TER, T2, ['joadyson', 'reinaldo']),
+            (QUA, T2, ['byguizo', 'diego']),
+            (QUI, T2, ['diego', 'byguizo']),
+            (SEX, T2, ['reinaldo', 'aila']),
+
+            (SEG, T3, ['reinaldo']),
+            (TER, T3, ['joadyson', 'joao.daniel']),
+            (QUA, T3, ['byguizo', 'diego']),
+            (QUI, T3, ['josue', 'diego']),
+            (SEX, T3, ['josue', 'kaenio']),
+        ]
+        for dia, slot, membros_usernames in escala_info:
+            horario, _criado = HorarioEscala.objects.get_or_create(dia_semana=dia, slot=slot)
+            horario.membros.set([usuarios[u] for u in membros_usernames])
+        self.stdout.write(self.style.SUCCESS(f'{len(escala_info)} horários da escala prontos.'))
 
         self.stdout.write(self.style.SUCCESS('Seed concluído com sucesso.'))

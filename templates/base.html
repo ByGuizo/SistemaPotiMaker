@@ -14,7 +14,7 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="potimaker-bg min-h-screen text-black">
+<body class="potimaker-bg min-h-screen text-black flex flex-col">
 
     <header class="bg-white border-b-4 border-black sticky top-0 z-30 anim-slide-down">
         <div class="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 gap-4 flex-wrap">
@@ -74,11 +74,11 @@
 
     {% include "partials/_mensagens.html" %}
 
-    <main class="max-w-[1400px] mx-auto px-6 py-6">
+    <main class="max-w-[1400px] mx-auto px-6 py-6 w-full flex-1">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t-4 border-black bg-white mt-10">
+    <footer class="border-t-4 border-black bg-white mt-10 shrink-0">
         <div class="max-w-[1400px] mx-auto px-6 py-3 flex justify-between text-xs font-bold flex-wrap gap-2">
             <span><i class="fa-regular fa-copyright"></i> 2026 FABLAB POTIMAKER — IFRN CANGUARETAMA</span>
             <span><i class="fa-solid fa-hammer"></i> FAÇA VOCÊ MESMO</span>
