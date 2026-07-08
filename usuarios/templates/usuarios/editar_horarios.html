@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Editar Horários{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-user-clock"></i> EDITAR ESCALA DE HORÁRIOS
+    </span>
+    <a href="{% url 'core:dashboard' %}" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
+        <i class="fa-solid fa-xmark"></i> CANCELAR
+    </a>
+</div>
+
+<p class="text-sm text-gray-600 mb-4 flex items-center gap-2">
+    <i class="fa-solid fa-circle-info"></i>
+    Segure Ctrl (ou Cmd no Mac) para selecionar mais de um membro em uma mesma célula.
+</p>
+
+<form method="post" class="card-pop border-2 border-black bg-white anim-fade-up overflow-x-auto">
+    {% csrf_token %}
+    <table class="w-full min-w-[900px]">
+        <thead>
+            <tr class="bg-black text-white text-left text-sm">
+                <th class="px-3 py-2 whitespace-nowrap"><i class="fa-regular fa-clock"></i> HORÁRIO</th>
+                {% for dia_valor, dia_label in dias %}
+                <th class="px-3 py-2">{{ dia_label|upper }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="divide-y-2 divide-black">
+            {% for linha in linhas %}
+            <tr class="{% if linha.slot|slice:':1' == 'M' %}bg-emerald-50{% else %}bg-yellow-50{% endif %}">
+                <td class="px-3 py-3 font-bold text-sm border-r-2 border-black whitespace-nowrap">
+                    {{ linha.label }}
+                </td>
+                {% for horario in linha.dias %}
+                <td class="px-2 py-2 border-r-2 border-black last:border-r-0 align-top">
+                    <select name="celula_{{ forloop.counter0 }}_{{ linha.slot }}" multiple size="4"
+                            class="w-full border-2 border-black px-2 py-1 text-xs focus:outline-none focus:shadow-brutal-fuchsia transition-all">
+                        {% for membro in membros %}
+                        <option value="{{ membro.pk }}" {% if horario and membro in horario.membros.all %}selected{% endif %}>
+                            {{ membro }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="flex gap-2 justify-end p-4 border-t-2 border-black">
+        <a href="{% url 'core:dashboard' %}" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
+            <i class="fa-solid fa-xmark"></i> CANCELAR
+        </a>
+        <button type="submit" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-emerald-400">
+            <i class="fa-solid fa-floppy-disk"></i> SALVAR
+        </button>
+    </div>
+</form>
+
+{% endblock %}

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import RegistroPresenca, Usuario
+from .models import HorarioEscala, RegistroPresenca, Usuario
 
 
 @admin.register(Usuario)
@@ -17,3 +17,10 @@ class UsuarioAdmin(UserAdmin):
 class RegistroPresencaAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'data_hora')
     date_hierarchy = 'data_hora'
+
+
+@admin.register(HorarioEscala)
+class HorarioEscalaAdmin(admin.ModelAdmin):
+    list_display = ('dia_semana', 'slot')
+    list_filter = ('dia_semana', 'slot')
+    filter_horizontal = ('membros',)

@@ -25,12 +25,12 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2">
-        <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-3 py-2 border-2 border-black mb-3 rotate-badge">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 flex flex-col">
+        <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-3 py-2 border-2 border-black mb-3 rotate-badge self-start">
             <i class="fa-solid fa-wand-magic-sparkles"></i> ACESSO RÁPIDO
         </span>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
             <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-4 flex items-center gap-3" style="--i:4">
                 <span class="w-12 h-12 flex items-center justify-center bg-black text-yellow-300 text-xl border-2 border-black">
                     <i class="fa-solid fa-boxes-stacked"></i>
@@ -71,11 +71,11 @@
     </div>
 
     <div class="anim-fade-up" style="animation-delay: 250ms">
-        {% include "core/partials/_presenca.html" %}
+        {% include "core/partials/_escala_atual.html" %}
     </div>
 </div>
 
-<div class="mt-6 anim-fade-up" id="status-laboratorio" style="animation-delay: 350ms">
+<div class="anim-fade-up" style="animation-delay: 350ms">
     {% include "core/partials/_status_laboratorio.html" %}
 </div>
 
