@@ -6,11 +6,9 @@
     <span class="inline-flex items-center gap-2 bg-purple-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
         <i class="fa-solid fa-users"></i> MEMBROS
     </span>
-    {% if request.user.is_authenticated and request.user.is_coordenador %}
-    <a href="{% url 'usuarios:novo_membro' %}" class="btn-pop inline-flex items-center gap-2 bg-emerald-400 font-black px-4 py-2 border-2 border-black">
-        <i class="fa-solid fa-user-plus"></i> NOVO MEMBRO
-    </a>
-    {% endif %}
+    <span class="text-xs font-bold text-gray-500 flex items-center gap-1">
+        <i class="fa-solid fa-circle-info"></i> Novos membros entram pelo auto-cadastro na tela de login
+    </span>
 </div>
 
 <form class="card-pop border-2 border-black bg-white p-3 mb-4 flex gap-3 flex-wrap anim-fade-up"

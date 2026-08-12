@@ -14,7 +14,7 @@ Sistema web de gestão para o **Laboratório de Inovação e Prototipagem (FabLa
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Modelo de permissões](#modelo-de-permissões)
 - [Como rodar localmente](#como-rodar-localmente)
-- [Dados de exemplo (seed)](#dados-de-exemplo-seed)
+- [Estado inicial do banco](#estado-inicial-do-banco)
 - [Identidade visual](#identidade-visual)
 - [Roadmap / próximos passos](#roadmap--próximos-passos)
 
@@ -39,8 +39,8 @@ Painel inicial com contadores (membros ativos, projetos em andamento, itens no i
 ### Inventário
 Cadastro de itens (equipamentos, ferramentas, consumíveis, componentes eletrônicos) com categoria, quantidade e status (disponível / em uso / em manutenção). Busca e filtros em tempo real.
 
-### Projetos (Kanban)
-Quadro Kanban com três colunas — *A Fazer*, *Fazendo*, *Concluído*. Cada projeto tem prioridade, prazo, descrição, membros responsáveis e documento técnico anexável. Mover um card entre colunas é feito com um clique, via HTMX.
+### Projetos e Atividades (Kanban)
+Cada **Projeto** agrupa uma ou mais **Atividades** — é a atividade que aparece como card no Kanban, com três colunas (*A Fazer*, *Fazendo*, *Concluído*), prioridade, prazo, descrição, membros responsáveis e documento técnico anexável. Mover um card entre colunas é feito com um clique, via HTMX. A tela do Kanban tem um filtro por projeto (dropdown), e uma tela separada lista os projetos cadastrados com a contagem de atividades de cada um.
 
 ### Membros
 Listagem e cadastro de membros do laboratório, com busca por nome/e-mail e filtro por tipo (coordenador/membro). Apenas coordenadores podem criar, editar ou excluir membros.
@@ -78,10 +78,10 @@ Não há build step de frontend (sem Webpack/Vite/npm) — Tailwind, HTMX e Font
 
 ```
 SistemaPotiMaker/        # pacote de configuração Django (settings, urls, wsgi/asgi)
-core/                    # dashboard agregador, template tags de badges, comando de seed
+core/                    # dashboard agregador, template tags de badges, comando limpar_banco
 usuarios/                # model de usuário customizado, autenticação, presença, perfil
 inventario/              # modelo e views de itens do inventário
-projetos/                # modelo e views do Kanban de projetos
+projetos/                # modelos Projeto/Atividade e views do Kanban
 agenda/                  # modelo e views do calendário/eventos
 templates/               # base.html e partials compartilhados entre apps
 static/                  # CSS customizado, config do Tailwind, HTMX local
@@ -99,11 +99,11 @@ A autenticação é obrigatória em todo o sistema (via `usuarios.middleware.Log
 |---|:---:|:---:|
 | Visualizar dashboard, inventário, projetos, membros, agenda | ✅ | ✅ |
 | Cadastrar/editar itens do inventário | ✅ | ✅ |
-| Cadastrar/editar projetos | ✅ | ✅ |
+| Cadastrar/editar projetos e atividades | ✅ | ✅ |
 | Cadastrar/editar eventos da agenda | ✅ | ✅ |
-| Mover projetos no Kanban | ✅ | ✅ |
+| Mover atividades no Kanban | ✅ | ✅ |
 | Ver e editar o próprio perfil | ✅ | ✅ |
-| Excluir itens, projetos ou eventos | ❌ | ✅ |
+| Excluir itens, projetos, atividades ou eventos | ❌ | ✅ |
 | Cadastrar, editar ou excluir membros | ❌ | ✅ |
 | Editar a escala de horários do laboratório | ❌ | ✅ |
 
@@ -127,22 +127,36 @@ python manage.py migrate
 # 4. Criar um superusuário (acesso ao /admin/)
 python manage.py createsuperuser
 
-# 5. (Opcional) Popular com dados de exemplo
-python manage.py seed_demo
-
-# 6. Rodar o servidor de desenvolvimento
+# 5. Rodar o servidor de desenvolvimento
 python manage.py runserver
 ```
 
-Acesse `http://127.0.0.1:8000/`. Todo o sistema exige login — use o superusuário criado ou um dos usuários do seed.
+Acesse `http://127.0.0.1:8000/`. Todo o sistema exige login — use o superusuário criado.
 
 ---
 
-## Dados de exemplo (seed)
+## Estado inicial do banco
 
-O comando `python manage.py seed_demo` popula o banco com usuários, itens de inventário, projetos, eventos, registros de presença e a escala de horários de exemplo — útil para testar o sistema sem precisar cadastrar tudo manualmente. É idempotente (pode ser rodado mais de uma vez sem duplicar dados).
+O sistema começa **vazio**: sem itens de inventário, projetos, atividades, eventos, escala de horários ou registros de presença. Os únicos usuários são os coordenadores `admin` e `byguizo`.
 
-Todos os usuários criados pelo seed têm a senha `potimaker123`.
+A partir daí, o cadastro é feito pelo próprio sistema: novos membros se cadastram em `/usuarios/cadastro/` (link na tela de login) e ficam pendentes até que um coordenador aprove pelo painel no dashboard. Inventário, projetos e eventos são cadastrados pelas telas correspondentes.
+
+### Limpar o banco
+
+Para voltar ao estado inicial, existe o comando `limpar_banco`:
+
+```powershell
+# Simulação: mostra o que seria apagado, sem apagar nada
+python manage.py limpar_banco
+
+# Apaga de verdade (preserva os usuários admin e byguizo)
+python manage.py limpar_banco --sim
+
+# Preservando outros usuários
+python manage.py limpar_banco --sim --manter admin maria.santos
+```
+
+⚠️ A operação é **irreversível** — faça uma cópia do `db.sqlite3` antes se houver dados que importam.
 
 ---
 

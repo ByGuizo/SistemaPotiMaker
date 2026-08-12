@@ -1,0 +1,49 @@
+<div class="card-pop border-2 border-black bg-white">
+    <div class="bg-yellow-300 px-4 py-2 font-black flex items-center gap-2 justify-between">
+        <span class="flex items-center gap-2">
+            <i class="fa-solid fa-user-clock"></i> CADASTROS PENDENTES
+        </span>
+        <span class="inline-flex items-center justify-center min-w-[1.5rem] px-2 py-0.5 bg-black text-yellow-300 text-xs font-black">
+            {{ cadastros_pendentes|length }}
+        </span>
+    </div>
+    <div class="divide-y-2 divide-black">
+        {% for pendente in cadastros_pendentes %}
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 shrink-0 border-2 border-black bg-purple-100 flex items-center justify-center font-black font-display">
+                    {{ pendente.first_name|slice:":1"|upper|default:pendente.username|slice:":1"|upper }}
+                </span>
+                <div>
+                    <p class="font-black leading-tight">{{ pendente }}</p>
+                    <p class="text-xs text-gray-500 leading-tight flex items-center gap-2 flex-wrap">
+                        <span><i class="fa-solid fa-user"></i> {{ pendente.username }}</span>
+                        <span><i class="fa-solid fa-id-card"></i> {{ pendente.matricula }}</span>
+                    </p>
+                </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <form method="post" action="{% url 'usuarios:aprovar_cadastro' pendente.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn-pop inline-flex items-center gap-1 bg-emerald-400 border-2 border-black px-3 py-1 font-bold text-sm">
+                        <i class="fa-solid fa-check"></i> APROVAR
+                    </button>
+                </form>
+                <form method="post" action="{% url 'usuarios:negar_cadastro' pendente.pk %}"
+                      onsubmit="return confirm('Negar e excluir o cadastro de {{ pendente|escapejs }}?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="proximo" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn-pop inline-flex items-center gap-1 bg-red-400 border-2 border-black px-3 py-1 font-bold text-sm">
+                        <i class="fa-solid fa-xmark"></i> NEGAR
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-4 text-sm text-gray-500 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check"></i> Nenhum cadastro aguardando aprovação.
+        </div>
+        {% endfor %}
+    </div>
+</div>

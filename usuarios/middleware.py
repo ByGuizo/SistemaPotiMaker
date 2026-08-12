@@ -3,6 +3,7 @@ from django.conf import settings
 
 CAMINHOS_PUBLICOS = (
     '/usuarios/login/',
+    '/usuarios/cadastro/',
     '/admin/',
     settings.STATIC_URL,
     settings.MEDIA_URL,

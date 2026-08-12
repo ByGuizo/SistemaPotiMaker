@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar — FabLab PotiMaker</title>
+    <title>Criar conta — FabLab PotiMaker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'js/tailwind-config.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=4">
@@ -20,7 +20,6 @@
 
     <i class="fa-solid fa-gear text-white/20 text-8xl absolute top-10 right-16 animate-float"></i>
     <i class="fa-solid fa-bolt text-white/20 text-6xl absolute bottom-16 left-16 animate-float-slow"></i>
-    <i class="fa-solid fa-microchip text-white/20 text-7xl absolute bottom-24 right-1/4 animate-float"></i>
 
     <main class="relative z-10 w-full max-w-md anim-fade-up">
         <div class="text-center mb-6">
@@ -31,25 +30,15 @@
 
         <div class="bg-white border-2 border-black shadow-brutal-lg overflow-hidden">
             <div class="bg-black text-white px-6 py-4 flex items-center gap-3">
-                <i class="fa-solid fa-user-astronaut text-2xl text-fuchsia-400"></i>
+                <i class="fa-solid fa-user-plus text-2xl text-emerald-400"></i>
                 <div>
-                    <p class="font-display font-bold text-lg leading-tight">Bem-vindo de volta</p>
-                    <p class="text-xs text-gray-300">Entre para acessar o laboratório</p>
+                    <p class="font-display font-bold text-lg leading-tight">Criar conta</p>
+                    <p class="text-xs text-gray-300">Seu cadastro passa por aprovação de um coordenador</p>
                 </div>
             </div>
 
             <form method="post" class="p-6">
                 {% csrf_token %}
-                {% for field in form %}
-                <div class="mb-4">
-                    <label class="block font-bold mb-1 text-sm" for="{{ field.id_for_label }}">
-                        {% if field.name == 'username' %}<i class="fa-solid fa-id-badge mr-1"></i>{% else %}<i class="fa-solid fa-lock mr-1"></i>{% endif %}
-                        {{ field.label }}
-                    </label>
-                    {{ field }}
-                    {% for error in field.errors %}<p class="text-xs text-red-600 font-bold mt-1">{{ error }}</p>{% endfor %}
-                </div>
-                {% endfor %}
 
                 {% if form.non_field_errors %}
                 <p class="text-xs text-red-600 font-bold mb-3 bg-red-50 border-2 border-red-400 px-3 py-2 animate-shake">
@@ -57,17 +46,27 @@
                 </p>
                 {% endif %}
 
-                <button type="submit" class="btn-pop w-full px-4 py-3 border-2 border-black font-black bg-emerald-400 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-right-to-bracket"></i> ENTRAR
-                </button>
-            </form>
+                {% for field in form %}
+                <div class="mb-4">
+                    <label class="block font-bold mb-1 text-sm" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}<p class="text-xs text-red-600 font-bold mt-1">{{ error }}</p>{% endfor %}
+                </div>
+                {% endfor %}
 
-            <div class="border-t-2 border-black px-6 py-4 bg-gray-50 text-center">
-                <p class="text-sm font-bold mb-2">Ainda não tem conta?</p>
-                <a href="{% url 'usuarios:cadastro' %}" class="btn-pop inline-flex items-center justify-center gap-2 w-full px-4 py-2 border-2 border-black font-black bg-yellow-300">
-                    <i class="fa-solid fa-user-plus"></i> CRIAR CONTA
+                <button type="submit" class="btn-pop w-full px-4 py-3 border-2 border-black font-black bg-emerald-400 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> ENVIAR CADASTRO
+                </button>
+
+                <a href="{% url 'usuarios:login' %}" class="block text-center text-sm font-bold mt-4 underline">
+                    <i class="fa-solid fa-arrow-left"></i> Já tenho conta, entrar
                 </a>
-            </div>
+            </form>
         </div>
 
         <p class="text-center text-white/80 text-xs font-bold mt-6 uppercase tracking-wide">

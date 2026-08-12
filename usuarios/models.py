@@ -2,6 +2,7 @@ from datetime import time
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class Usuario(AbstractUser):
@@ -9,15 +10,38 @@ class Usuario(AbstractUser):
         COORDENADOR = 'COORD', 'Coordenador'
         MEMBRO = 'MEMBRO', 'Membro'
 
+    class StatusCadastro(models.TextChoices):
+        PENDENTE = 'PENDENTE', 'Pendente'
+        APROVADO = 'APROVADO', 'Aprovado'
+
     matricula = models.CharField('Matrícula', max_length=20, unique=True)
     tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.MEMBRO)
+    status_cadastro = models.CharField(
+        'Status do cadastro', max_length=10,
+        choices=StatusCadastro.choices, default=StatusCadastro.APROVADO
+    )
     criado_por = models.ForeignKey(
         'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='criados'
     )
+    aprovado_por = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='aprovados'
+    )
+    aprovado_em = models.DateTimeField(null=True, blank=True)
 
     @property
     def is_coordenador(self):
         return self.tipo == self.Tipo.COORDENADOR
+
+    @property
+    def is_pendente(self):
+        return self.status_cadastro == self.StatusCadastro.PENDENTE
+
+    def aprovar(self, coordenador):
+        self.status_cadastro = self.StatusCadastro.APROVADO
+        self.is_active = True
+        self.aprovado_por = coordenador
+        self.aprovado_em = timezone.now()
+        self.save(update_fields=['status_cadastro', 'is_active', 'aprovado_por', 'aprovado_em'])
 
     def __str__(self):
         return self.get_full_name() or self.username

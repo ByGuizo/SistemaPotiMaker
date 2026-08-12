@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Projetos{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+    <span class="inline-flex items-center gap-2 bg-purple-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
+        <i class="fa-solid fa-folder-tree"></i> PROJETOS
+    </span>
+    <div class="flex gap-2 flex-wrap">
+        <a href="{% url 'projetos:kanban' %}" class="btn-pop inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black">
+            <i class="fa-solid fa-table-columns"></i> KANBAN
+        </a>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'projetos:novo_projeto' %}" class="btn-pop inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black">
+            <i class="fa-solid fa-plus"></i> NOVO PROJETO
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for projeto in projetos %}
+    <div class="card-pop stagger-item border-2 border-black bg-white p-4" style="--i:{{ forloop.counter0 }}">
+        <div class="flex justify-between items-start mb-2 gap-2">
+            <p class="font-black font-display">{{ projeto.nome }}</p>
+            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black {% if projeto.em_andamento %}bg-emerald-400{% else %}bg-gray-200{% endif %}">
+                <i class="fa-solid {% if projeto.em_andamento %}fa-spinner{% else %}fa-circle-check{% endif %}"></i>
+                {% if projeto.em_andamento %}EM ANDAMENTO{% else %}CONCLUÍDO{% endif %}
+            </span>
+        </div>
+        {% if projeto.descricao %}<p class="text-sm text-gray-600 mb-3">{{ projeto.descricao }}</p>{% endif %}
+        <a href="{% url 'projetos:kanban' %}?projeto={{ projeto.pk }}" class="text-xs font-bold text-fuchsia-600 flex items-center gap-1 mb-3 hover:underline">
+            <i class="fa-solid fa-table-columns"></i> {{ projeto.atividades.count }} atividade{{ projeto.atividades.count|pluralize }} — ver no Kanban
+        </a>
+        {% if request.user.is_authenticated %}
+        <div class="flex justify-end gap-1 border-t-2 border-black pt-2">
+            <a href="{% url 'projetos:editar_projeto' projeto.pk %}" class="btn-pop bg-yellow-300 border-2 border-black px-2 py-1"><i class="fa-solid fa-pen"></i></a>
+            {% if request.user.is_coordenador %}
+            <form method="post" action="{% url 'projetos:excluir_projeto' projeto.pk %}" onsubmit="return confirm('Excluir este projeto e todas as suas atividades?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p class="text-gray-500 flex items-center gap-2"><i class="fa-regular fa-folder-open"></i> Nenhum projeto cadastrado.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
