@@ -7,7 +7,7 @@
     <title>Entrar — FabLab PotiMaker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'js/tailwind-config.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -61,6 +61,13 @@
                     <i class="fa-solid fa-right-to-bracket"></i> ENTRAR
                 </button>
             </form>
+
+            <div class="border-t-2 border-black px-6 py-4 bg-gray-50 text-center">
+                <p class="text-sm font-bold mb-2">Ainda não tem conta?</p>
+                <a href="{% url 'usuarios:cadastro' %}" class="btn-pop inline-flex items-center justify-center gap-2 w-full px-4 py-2 border-2 border-black font-black bg-yellow-300">
+                    <i class="fa-solid fa-user-plus"></i> CRIAR CONTA
+                </a>
+            </div>
         </div>
 
         <p class="text-center text-white/80 text-xs font-bold mt-6 uppercase tracking-wide">

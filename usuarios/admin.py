@@ -7,10 +7,13 @@ from .models import HorarioEscala, RegistroPresenca, Usuario
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ('PotiMaker', {'fields': ('matricula', 'tipo', 'criado_por')}),
+        ('PotiMaker', {
+            'fields': ('matricula', 'tipo', 'status_cadastro', 'criado_por', 'aprovado_por', 'aprovado_em')
+        }),
     )
-    list_display = ('username', 'first_name', 'last_name', 'tipo', 'is_active')
-    list_filter = UserAdmin.list_filter + ('tipo',)
+    readonly_fields = ('aprovado_em',)
+    list_display = ('username', 'first_name', 'matricula', 'tipo', 'status_cadastro', 'is_active')
+    list_filter = UserAdmin.list_filter + ('tipo', 'status_cadastro')
 
 
 @admin.register(RegistroPresenca)

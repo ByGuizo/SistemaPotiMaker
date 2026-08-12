@@ -25,7 +25,7 @@
             </div>
             <p class="font-black font-display text-lg">{{ membro }}</p>
             <p class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
-                <i class="fa-solid fa-envelope"></i> {{ membro.email|default:"Sem e-mail cadastrado" }}
+                <i class="fa-solid fa-user"></i> {{ membro.username }}
             </p>
             <div class="flex gap-1 justify-center mt-3 flex-wrap">
                 {% badge membro.tipo "tipo_usuario" membro.get_tipo_display %}
@@ -65,13 +65,13 @@
             </div>
             <div class="p-4 space-y-2">
                 {% for projeto in projetos %}
-                <div class="stagger-item flex items-center justify-between border-2 border-black p-3" style="--i:{{ forloop.counter0 }}">
+                <a href="{% url 'projetos:kanban' %}?projeto={{ projeto.pk }}" class="stagger-item flex items-center justify-between border-2 border-black p-3 hover:bg-fuchsia-50 transition-colors" style="--i:{{ forloop.counter0 }}">
                     <div>
                         <p class="font-bold">{{ projeto.nome }}</p>
-                        <p class="text-xs text-gray-500">{{ projeto.get_status_display }}</p>
+                        <p class="text-xs text-gray-500">Ver atividades no Kanban</p>
                     </div>
-                    {% badge projeto.prioridade "prioridade" projeto.get_prioridade_display %}
-                </div>
+                    <i class="fa-solid fa-arrow-right text-fuchsia-500"></i>
+                </a>
                 {% empty %}
                 <p class="text-sm text-gray-500 flex items-center gap-2 py-2">
                     <i class="fa-regular fa-folder-open"></i> Você ainda não está em nenhum projeto.

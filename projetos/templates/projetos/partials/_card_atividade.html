@@ -1,0 +1,52 @@
+{% load potimaker_tags %}
+<div class="card-pop stagger-item border-2 border-black bg-white p-3 mb-3" style="--i:{{ forloop.counter0 }}">
+    <div class="flex justify-between items-start mb-1 gap-2">
+        <div>
+            <p class="text-xs font-bold text-fuchsia-600 flex items-center gap-1 mb-0.5">
+                <i class="fa-solid fa-folder"></i> {{ atividade.projeto.nome }}
+            </p>
+            <p class="font-black font-display">{{ atividade.nome }}</p>
+        </div>
+        <span class="{% if atividade.prioridade == 'ALTA' %}pulse-soft{% endif %}">
+            {% badge atividade.prioridade "prioridade" atividade.get_prioridade_display %}
+        </span>
+    </div>
+    {% if atividade.descricao %}<p class="text-sm text-gray-600 mb-2">{{ atividade.descricao }}</p>{% endif %}
+    {% if atividade.membros.all %}
+    <p class="text-xs text-gray-500 mb-1 flex items-center gap-1">
+        <i class="fa-solid fa-user-group"></i> {% for m in atividade.membros.all %}{{ m }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% endif %}
+    {% if atividade.prazo %}
+    <p class="text-xs text-gray-500 mb-2 flex items-center gap-1">
+        <i class="fa-regular fa-calendar"></i> Prazo: {{ atividade.prazo|date:"d/m/Y" }}
+    </p>
+    {% endif %}
+    <div class="flex justify-between items-center border-t-2 border-black pt-2 mt-2">
+        <div class="flex gap-1">
+            {% if atividade.status != "A_FAZER" %}
+            <form method="post" action="{% url 'projetos:mover_atividade' atividade.pk 'tras' %}" hx-post="{% url 'projetos:mover_atividade' atividade.pk 'tras' %}" hx-target="#kanban-colunas" hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop border-2 border-black px-2 py-1 bg-white"><i class="fa-solid fa-arrow-left"></i></button>
+            </form>
+            {% endif %}
+            {% if atividade.status != "CONCLUIDO" %}
+            <form method="post" action="{% url 'projetos:mover_atividade' atividade.pk 'frente' %}" hx-post="{% url 'projetos:mover_atividade' atividade.pk 'frente' %}" hx-target="#kanban-colunas" hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop border-2 border-black px-2 py-1 bg-white"><i class="fa-solid fa-arrow-right"></i></button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="flex gap-1">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'projetos:editar_atividade' atividade.pk %}" class="btn-pop bg-yellow-300 border-2 border-black px-2 py-1"><i class="fa-solid fa-pen"></i></a>
+            {% endif %}
+            {% if request.user.is_authenticated and request.user.is_coordenador %}
+            <form method="post" action="{% url 'projetos:excluir_atividade' atividade.pk %}" onsubmit="return confirm('Excluir esta atividade?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>

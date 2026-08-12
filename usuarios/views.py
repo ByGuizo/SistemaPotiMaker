@@ -5,9 +5,12 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from projetos.models import Projeto
 
 from .decorators import coordenador_required
-from .forms import LoginForm, MembroForm
+from .forms import CadastroForm, LoginForm, MembroForm
 from .models import HorarioEscala
 from .services import grade_horarios
 
@@ -23,14 +26,35 @@ class PotiMakerLogoutView(LogoutView):
     pass
 
 
+def cadastro(request):
+    """Auto-cadastro público — cria o usuário pendente de aprovação do coordenador."""
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+
+    if request.method == 'POST':
+        form = CadastroForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Cadastro enviado! Aguarde a aprovação de um coordenador para acessar o sistema.'
+            )
+            return redirect('usuarios:login')
+    else:
+        form = CadastroForm()
+    return render(request, 'usuarios/cadastro.html', {'form': form})
+
+
 def lista_membros(request):
     termo = request.GET.get('q', '').strip()
     tipo = request.GET.get('tipo', '')
 
-    membros = Usuario.objects.all().order_by('first_name', 'username')
+    membros = Usuario.objects.filter(
+        status_cadastro=Usuario.StatusCadastro.APROVADO
+    ).order_by('first_name', 'username')
     if termo:
         membros = membros.filter(
-            Q(first_name__icontains=termo) | Q(last_name__icontains=termo) | Q(email__icontains=termo)
+            Q(first_name__icontains=termo) | Q(username__icontains=termo) | Q(matricula__icontains=termo)
         )
     if tipo:
         membros = membros.filter(tipo=tipo)
@@ -40,18 +64,33 @@ def lista_membros(request):
     return render(request, template, contexto)
 
 
+def _destino_seguro(request):
+    """Só aceita redirecionamento para uma URL interna (evita open redirect)."""
+    proximo = request.POST.get('proximo')
+    if proximo and url_has_allowed_host_and_scheme(
+        proximo, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return proximo
+    return reverse_lazy('core:dashboard')
+
+
 @coordenador_required
-def novo_membro(request):
+def aprovar_cadastro(request, pk):
+    pendente = get_object_or_404(Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.PENDENTE)
     if request.method == 'POST':
-        form = MembroForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Membro criado com sucesso.')
-            return redirect('usuarios:lista_membros')
-    else:
-        form = MembroForm()
-    contexto = {'form': form, 'titulo': 'Novo Membro', 'voltar_url': reverse_lazy('usuarios:lista_membros')}
-    return render(request, 'usuarios/membro_form.html', contexto)
+        pendente.aprovar(request.user)
+        messages.success(request, f'Cadastro de {pendente} aprovado.')
+    return redirect(_destino_seguro(request))
+
+
+@coordenador_required
+def negar_cadastro(request, pk):
+    pendente = get_object_or_404(Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.PENDENTE)
+    if request.method == 'POST':
+        nome = str(pendente)
+        pendente.delete()
+        messages.success(request, f'Cadastro de {nome} negado e removido.')
+    return redirect(_destino_seguro(request))
 
 
 @coordenador_required
@@ -82,7 +121,7 @@ def excluir_membro(request, pk):
 def perfil(request):
     contexto = {
         'membro': request.user,
-        'projetos': request.user.projetos.all(),
+        'projetos': Projeto.objects.filter(atividades__membros=request.user).distinct(),
         'registros': request.user.registros_presenca.all()[:10],
     }
     return render(request, 'usuarios/perfil.html', contexto)

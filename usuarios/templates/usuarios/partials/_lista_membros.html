@@ -9,8 +9,9 @@
             </div>
             <div>
                 <p class="font-black leading-tight font-display">{{ membro }}</p>
-                <p class="text-xs text-gray-500 leading-tight flex items-center gap-1">
-                    <i class="fa-solid fa-envelope"></i> {{ membro.email }}
+                <p class="text-xs text-gray-500 leading-tight flex items-center gap-2 flex-wrap">
+                    <span><i class="fa-solid fa-user"></i> {{ membro.username }}</span>
+                    <span><i class="fa-solid fa-id-card"></i> {{ membro.matricula }}</span>
                 </p>
             </div>
         </div>

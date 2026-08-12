@@ -117,3 +117,235 @@ h1, h2, h3, .font-display {
 .htmx-indicator { opacity: 0; transition: opacity 0.2s ease; }
 .htmx-request .htmx-indicator { opacity: 1; }
 .htmx-request.htmx-indicator { opacity: 1; }
+
+/* ==========================================================================
+   Campo de membros (static/js/multi-select.js) — substitui o <select multiple>
+   nativo. Você digita, o nome completa inline e vira um chip no Enter/Tab.
+   ========================================================================== */
+.ms-raiz {
+    position: relative;
+}
+
+/* Caixa que agrupa os chips já escolhidos e o input de digitação */
+.ms-caixa {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    min-height: 52px;
+    padding: 7px;
+    background: #fff;
+    border: 2px solid #000;
+    cursor: text;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.ms-caixa:hover {
+    box-shadow: 3px 3px 0 0 #000;
+}
+.ms-raiz.ms-aberto .ms-caixa,
+.ms-caixa:focus-within {
+    box-shadow: 4px 4px 0 0 #E01FB8;
+    transform: translate(-1px, -1px);
+}
+
+.ms-chips {
+    display: contents;
+}
+
+/* Input de digitação: cresce para ocupar o resto da linha */
+.ms-entrada {
+    flex: 1 1 90px;
+    min-width: 90px;
+    border: none;
+    outline: none;
+    padding: 5px 3px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    color: #000;
+}
+.ms-entrada::placeholder {
+    color: #9CA3AF;
+    font-weight: 600;
+}
+/* Trecho completado automaticamente */
+.ms-entrada::selection {
+    background: #D4F84A;
+    color: #000;
+}
+
+/* --- Chip de membro escolhido --- */
+.ms-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 3px 3px 3px 4px;
+    background: #3DE0D0;
+    border: 2px solid #000;
+    box-shadow: 2px 2px 0 0 #000;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.4;
+    animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ms-chip:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 0 #000;
+}
+.ms-chip-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    background: #000;
+    color: #3DE0D0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+/* Espaço próprio para o nome — impede que cole no avatar ou no "x" */
+.ms-chip-nome {
+    padding: 0 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ms-chip-remover {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.12);
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+    padding: 0;
+    color: #000;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.ms-chip-remover:hover {
+    background: #000;
+    color: #F87171;
+}
+
+/* --- Painel de sugestões ---
+   position:fixed para não ser recortado pelo overflow-x-auto da tabela;
+   coordenadas calculadas em posicionarPainel(). */
+.ms-painel {
+    position: fixed;
+    z-index: 50;
+    min-width: 220px;
+    background: #fff;
+    border: 2px solid #000;
+    box-shadow: 5px 5px 0 0 #000;
+    animation: fadeSlideUp 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
+    overflow: hidden;
+}
+
+.ms-dica {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    background: #000;
+    color: #D4F84A;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ms-lista {
+    max-height: 190px;
+    overflow-y: auto;
+}
+
+.ms-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 1px solid #E5E7EB;
+}
+.ms-item:last-child {
+    border-bottom: none;
+}
+.ms-item-ativo {
+    background: #FEF08A;
+    box-shadow: inset 4px 0 0 0 #E01FB8;
+}
+.ms-item-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    background: #7C3AED;
+    color: #fff;
+    border: 2px solid #000;
+    font-size: 9px;
+    font-weight: 900;
+}
+.ms-item-texto {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ms-item-tecla {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    background: #fff;
+    border: 2px solid #000;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.ms-marca {
+    background: #D4F84A;
+    color: inherit;
+    font-weight: 900;
+    padding: 0 1px;
+}
+
+.ms-sem-resultado {
+    padding: 12px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    text-align: center;
+}
+
+/* Dentro de célula de tabela (escala de horários) o campo é compacto: são 30
+   deles lado a lado, então cede espaço. Em formulário mantém o tamanho base. */
+td .ms-caixa {
+    min-height: 44px;
+    padding: 5px;
+    gap: 4px;
+}
+td .ms-entrada {
+    font-size: 12px;
+    padding: 3px 2px;
+    flex-basis: 80px;
+    min-width: 80px;
+}
+td .ms-chip {
+    font-size: 11px;
+}
+
+/* Sem JS o widget não é montado (.ms-raiz só vem do JS): esconde a div vazia
+   e deixa o <select multiple> do <noscript> assumir. */
+.multi-select:not(.ms-raiz) { display: none; }

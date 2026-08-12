@@ -8,14 +8,14 @@
                 <i class="fa-solid {% if coluna.valor == 'A_FAZER' %}fa-list-check{% elif coluna.valor == 'FAZENDO' %}fa-person-running{% else %}fa-flag-checkered{% endif %}"></i>
                 {{ coluna.label|upper }}
             </span>
-            <span class="bg-black text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full">{{ coluna.projetos|length }}</span>
+            <span class="bg-black text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full">{{ coluna.atividades|length }}</span>
         </div>
         <div class="p-3 min-h-[80px]">
-            {% for projeto in coluna.projetos %}
-                {% include "projetos/partials/_card_projeto.html" %}
+            {% for atividade in coluna.atividades %}
+                {% include "projetos/partials/_card_atividade.html" %}
             {% empty %}
             <p class="text-sm text-gray-500 flex items-center gap-2 justify-center py-4">
-                <i class="fa-regular fa-folder-open"></i> Nenhum projeto nesta coluna.
+                <i class="fa-regular fa-folder-open"></i> Nenhuma atividade nesta coluna.
             </p>
             {% endfor %}
         </div>

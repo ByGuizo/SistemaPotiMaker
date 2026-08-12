@@ -1,72 +1,70 @@
 {% extends "base.html" %}
+{% load potimaker_tags %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-5 relative overflow-hidden" style="--i:0">
+    <a href="{% url 'usuarios:lista_membros' %}" class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-5 relative overflow-hidden" style="--i:0">
         <i class="fa-solid fa-users absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
         <p class="text-4xl font-black font-display counter-value">{{ qtd_membros_ativos }}</p>
         <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-user-check"></i> MEMBROS ATIVOS</p>
-    </div>
-    <div class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-5 relative overflow-hidden" style="--i:1">
+    </a>
+    <a href="{% url 'projetos:kanban' %}" class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-5 relative overflow-hidden" style="--i:1">
         <i class="fa-solid fa-diagram-project absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
         <p class="text-4xl font-black font-display counter-value">{{ qtd_projetos_andamento }}</p>
         <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-spinner"></i> PROJETOS EM ANDAMENTO</p>
-    </div>
-    <div class="card-pop stagger-item border-2 border-black bg-yellow-300 p-5 relative overflow-hidden" style="--i:2">
+    </a>
+    <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-5 relative overflow-hidden" style="--i:2">
         <i class="fa-solid fa-boxes-stacked absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
         <p class="text-4xl font-black font-display counter-value">{{ qtd_itens_inventario }}</p>
         <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-warehouse"></i> ITENS NO INVENTÁRIO</p>
-    </div>
-    <div class="card-pop stagger-item border-2 border-black bg-emerald-400 p-5 relative overflow-hidden" style="--i:3">
+    </a>
+    <a href="{% url 'agenda:calendario' %}" class="card-pop stagger-item border-2 border-black bg-emerald-400 p-5 relative overflow-hidden" style="--i:3">
         <i class="fa-solid fa-calendar-days absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
         <p class="text-4xl font-black font-display counter-value">{{ qtd_eventos_semana }}</p>
         <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-clock"></i> EVENTOS ESTA SEMANA</p>
-    </div>
+    </a>
 </div>
 
+{% if cadastros_pendentes %}
+<div class="anim-fade-up mb-6" style="animation-delay: 100ms">
+    {% include "core/partials/_cadastros_pendentes.html" %}
+</div>
+{% endif %}
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-    <div class="lg:col-span-2 flex flex-col">
-        <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-3 py-2 border-2 border-black mb-3 rotate-badge self-start">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> ACESSO RÁPIDO
-        </span>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-4 flex items-center gap-3" style="--i:4">
-                <span class="w-12 h-12 flex items-center justify-center bg-black text-yellow-300 text-xl border-2 border-black">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                </span>
-                <div>
-                    <p class="font-black font-display">INVENTÁRIO</p>
-                    <p class="text-sm">Gerencie equipamentos e materiais</p>
+    <div class="lg:col-span-2 anim-fade-up" style="animation-delay: 150ms">
+        <div class="card-pop border-2 border-black bg-white h-full flex flex-col">
+            <div class="bg-fuchsia-500 text-white px-4 py-2 font-black flex items-center gap-2 justify-between">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-list-check"></i> MINHAS ATIVIDADES</span>
+                <a href="{% url 'projetos:kanban' %}" class="text-xs opacity-80 hover:opacity-100 flex items-center gap-1">
+                    VER KANBAN <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="divide-y-2 divide-black flex-1">
+                {% for atividade in minhas_atividades %}
+                <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p class="font-black">{{ atividade.nome }}</p>
+                        <p class="text-xs font-bold text-gray-500 flex items-center gap-1">
+                            <i class="fa-solid fa-diagram-project"></i> {{ atividade.projeto.nome }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% badge atividade.prioridade "prioridade" atividade.get_prioridade_display %}
+                        {% if atividade.prazo %}
+                        <span class="inline-flex items-center gap-1 px-2 py-1 border-2 border-black text-xs font-bold bg-white">
+                            <i class="fa-regular fa-calendar"></i> {{ atividade.prazo|date:"d/m" }}
+                        </span>
+                        {% endif %}
+                    </div>
                 </div>
-            </a>
-            <a href="{% url 'projetos:kanban' %}" class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-4 flex items-center gap-3" style="--i:5">
-                <span class="w-12 h-12 flex items-center justify-center bg-black text-fuchsia-400 text-xl border-2 border-black">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </span>
-                <div>
-                    <p class="font-black font-display">PROJETOS ATIVOS</p>
-                    <p class="text-sm">Acompanhe projetos em andamento</p>
+                {% empty %}
+                <div class="p-4 text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-regular fa-face-smile"></i> Você não tem atividades em aberto.
                 </div>
-            </a>
-            <a href="{% url 'usuarios:lista_membros' %}" class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-4 flex items-center gap-3" style="--i:6">
-                <span class="w-12 h-12 flex items-center justify-center bg-black text-purple-400 text-xl border-2 border-black">
-                    <i class="fa-solid fa-users"></i>
-                </span>
-                <div>
-                    <p class="font-black font-display">MEMBROS</p>
-                    <p class="text-sm">Gerencie membros do laboratório</p>
-                </div>
-            </a>
-            <a href="{% url 'agenda:calendario' %}" class="card-pop stagger-item border-2 border-black bg-emerald-400 p-4 flex items-center gap-3" style="--i:7">
-                <span class="w-12 h-12 flex items-center justify-center bg-black text-emerald-400 text-xl border-2 border-black">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </span>
-                <div>
-                    <p class="font-black font-display">AGENDA</p>
-                    <p class="text-sm">Visualize eventos e reservas</p>
-                </div>
-            </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
@@ -75,8 +73,80 @@
     </div>
 </div>
 
-<div class="anim-fade-up" style="animation-delay: 350ms">
-    {% include "core/partials/_status_laboratorio.html" %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="anim-fade-up" style="animation-delay: 350ms">
+        <div class="card-pop border-2 border-black bg-white h-full flex flex-col">
+            <div class="bg-red-400 px-4 py-2 font-black flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> ATIVIDADES ATRASADAS
+            </div>
+            <div class="divide-y-2 divide-black flex-1">
+                {% for atividade in atividades_atrasadas %}
+                <div class="p-4 flex items-center justify-between gap-2">
+                    <div>
+                        <p class="font-bold text-sm">{{ atividade.nome }}</p>
+                        <p class="text-xs text-gray-500">{{ atividade.projeto.nome }}</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 border-2 border-black text-xs font-bold bg-red-400 shrink-0">
+                        <i class="fa-regular fa-calendar-xmark"></i> {{ atividade.prazo|date:"d/m" }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="p-4 text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-solid fa-thumbs-up"></i> Nenhuma atividade atrasada.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="anim-fade-up" style="animation-delay: 400ms">
+        <div class="card-pop border-2 border-black bg-white h-full flex flex-col">
+            <div class="bg-emerald-400 px-4 py-2 font-black flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check"></i> PRÓXIMOS EVENTOS
+            </div>
+            <div class="divide-y-2 divide-black flex-1">
+                {% for evento in proximos_eventos %}
+                <div class="p-4 flex items-center gap-3">
+                    <span class="w-12 shrink-0 text-center border-2 border-black bg-emerald-400 py-1">
+                        <span class="block text-sm font-black font-display leading-none">{{ evento.data|date:"d" }}</span>
+                        <span class="block text-[10px] font-bold uppercase">{{ evento.data|date:"M" }}</span>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="font-bold text-sm truncate">{{ evento.titulo }}</p>
+                        <p class="text-xs text-gray-500 flex items-center gap-1">
+                            {% if evento.hora_inicio %}<i class="fa-regular fa-clock"></i> {{ evento.hora_inicio|time:"H:i" }}{% endif %}
+                            {% if evento.local %}<i class="fa-solid fa-location-dot"></i> {{ evento.local }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-4 text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-regular fa-calendar"></i> Nenhum evento agendado.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="anim-fade-up" style="animation-delay: 450ms">
+        <div class="card-pop border-2 border-black bg-white h-full flex flex-col">
+            <div class="bg-yellow-300 px-4 py-2 font-black flex items-center gap-2">
+                <i class="fa-solid fa-screwdriver-wrench"></i> ITENS EM MANUTENÇÃO
+            </div>
+            <div class="divide-y-2 divide-black flex-1">
+                {% for item in itens_manutencao %}
+                <div class="p-4 flex items-center justify-between gap-2">
+                    <p class="font-bold text-sm">{{ item.nome }}</p>
+                    {% badge item.categoria "categoria_item" item.get_categoria_display %}
+                </div>
+                {% empty %}
+                <div class="p-4 text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Nenhum item em manutenção.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
