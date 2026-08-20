@@ -1,6 +1,8 @@
 import calendar
+import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -37,13 +39,23 @@ def _grade_mes(ano, mes):
 
 def calendario(request):
     hoje = timezone.localdate()
-    ano = int(request.GET.get('ano', hoje.year))
-    mes = int(request.GET.get('mes', hoje.month))
+
+    # Parâmetros vêm da URL (links de navegação, mas também digitáveis):
+    # qualquer lixo cai no mês atual em vez de estourar ValueError/OverflowError.
+    try:
+        ano = int(request.GET.get('ano', hoje.year))
+        mes = int(request.GET.get('mes', hoje.month))
+    except (TypeError, ValueError):
+        ano, mes = hoje.year, hoje.month
 
     if mes < 1:
         mes, ano = 12, ano - 1
     elif mes > 12:
         mes, ano = 1, ano + 1
+
+    # date() aceita no máximo MAXYEAR; fora disso o calendário nem faz sentido
+    if not (datetime.MINYEAR <= ano <= datetime.MAXYEAR):
+        ano, mes = hoje.year, hoje.month
 
     contexto = {
         'semanas': _grade_mes(ano, mes),
@@ -61,7 +73,12 @@ def calendario(request):
 
 
 def painel_dia(request, ano, mes, dia):
-    data = timezone.datetime(ano, mes, dia).date()
+    # A URL aceita qualquer inteiro: 30/02 ou mês 99 não existem como data.
+    try:
+        data = datetime.date(ano, mes, dia)
+    except ValueError:
+        raise Http404('Data inválida.')
+
     eventos = Evento.objects.filter(data=data)
     contexto = {'data': data, 'eventos': eventos}
     return render(request, 'agenda/partials/_painel_dia.html', contexto)

@@ -23,3 +23,12 @@ class EventoForm(EstiloPotiMakerMixin, forms.ModelForm):
             'hora_fim': forms.TimeInput(attrs={'type': 'time'}),
             'descricao': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def clean(self):
+        dados = super().clean()
+        inicio = dados.get('hora_inicio')
+        fim = dados.get('hora_fim')
+        # Ambos são opcionais; só valida a ordem quando os dois foram informados
+        if inicio and fim and fim <= inicio:
+            self.add_error('hora_fim', 'A hora de término deve ser depois da hora de início.')
+        return dados
