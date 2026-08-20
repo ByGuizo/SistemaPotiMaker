@@ -349,3 +349,126 @@ td .ms-chip {
 /* Sem JS o widget não é montado (.ms-raiz só vem do JS): esconde a div vazia
    e deixa o <select multiple> do <noscript> assumir. */
 .multi-select:not(.ms-raiz) { display: none; }
+
+/* ==========================================================================
+   MODO ESCURO
+   Os templates usam utilitários Tailwind fixos (bg-white, text-black...). Em vez
+   de reescrever ~120 arquivos, o tema inverte essas classes aqui, sob o atributo
+   [data-tema="escuro"] no <html> — alternado por static/js/tema.js.
+   As cores de marca (fúcsia, amarelo, esmeralda, roxo) continuam iguais: são a
+   identidade do sistema e contrastam bem no escuro. O que muda são as
+   superfícies (branco -> grafite), os textos e as bordas/sombras.
+   ========================================================================== */
+:root {
+    --ptm-superficie: #1E1B26;
+    --ptm-superficie-2: #2A2533;
+    --ptm-borda: #000;
+    --ptm-texto: #000;
+}
+[data-tema="escuro"] {
+    --ptm-superficie: #1E1B26;
+    --ptm-superficie-2: #2A2533;
+    --ptm-borda: #0A0810;
+    --ptm-texto: #F3F0F7;
+}
+
+/* Fundo pontilhado da página */
+[data-tema="escuro"] .potimaker-bg {
+    background-color: #14111A;
+    background-image: radial-gradient(#FFFFFF14 1.5px, transparent 1.5px);
+}
+
+[data-tema="escuro"] body {
+    color: var(--ptm-texto);
+}
+
+/* --- Superfícies: tudo que era branco vira grafite --- */
+[data-tema="escuro"] .bg-white {
+    background-color: var(--ptm-superficie) !important;
+    color: var(--ptm-texto);
+}
+/* Tints pálidos (linhas de tabela, faixas de destaque) */
+[data-tema="escuro"] .bg-gray-50,
+[data-tema="escuro"] .bg-gray-100,
+[data-tema="escuro"] .bg-emerald-50,
+[data-tema="escuro"] .bg-yellow-50,
+[data-tema="escuro"] .bg-red-50,
+[data-tema="escuro"] .bg-fuchsia-50 {
+    background-color: var(--ptm-superficie-2) !important;
+    color: var(--ptm-texto);
+}
+/* Avatares em tons pastel: escurece mantendo o matiz */
+[data-tema="escuro"] .bg-purple-100 { background-color: #3B2E5A !important; color: #E9DDFF !important; }
+[data-tema="escuro"] .bg-fuchsia-100 { background-color: #4A1D45 !important; color: #FFD9F5 !important; }
+[data-tema="escuro"] .bg-yellow-100 { background-color: #4A3F14 !important; color: #FFF3C4 !important; }
+[data-tema="escuro"] .bg-emerald-100 { background-color: #14402F !important; color: #C6F6E2 !important; }
+[data-tema="escuro"] .bg-gray-200,
+[data-tema="escuro"] .bg-gray-300 { background-color: #3A3444 !important; color: var(--ptm-texto) !important; }
+
+/* bg-black precisa clarear um pouco para não sumir no fundo */
+[data-tema="escuro"] .bg-black { background-color: #0A0810 !important; }
+
+/* --- Texto --- */
+[data-tema="escuro"] .text-black { color: var(--ptm-texto) !important; }
+[data-tema="escuro"] .text-gray-500,
+[data-tema="escuro"] .text-gray-600 { color: #A79FB5 !important; }
+[data-tema="escuro"] .text-gray-400 { color: #8F86A0 !important; }
+[data-tema="escuro"] .text-gray-300 { color: #C9C2D6 !important; }
+
+/* --- Bordas e sombras brutalistas --- */
+[data-tema="escuro"] .border-black { border-color: var(--ptm-borda) !important; }
+[data-tema="escuro"] .divide-black > * { border-color: var(--ptm-borda) !important; }
+[data-tema="escuro"] .card-pop { box-shadow: 4px 4px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .card-pop:hover { box-shadow: 7px 7px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .card-pop:active { box-shadow: 2px 2px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .btn-pop { box-shadow: 3px 3px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .btn-pop:hover { box-shadow: 5px 5px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .btn-pop:active { box-shadow: 1px 1px 0 0 var(--ptm-borda); }
+[data-tema="escuro"] .nav-link:hover { box-shadow: 3px 4px 0 0 var(--ptm-borda); }
+
+/* Cores de marca em fundo escuro precisam de texto escuro para contrastar */
+[data-tema="escuro"] .bg-yellow-300,
+[data-tema="escuro"] .bg-emerald-400,
+[data-tema="escuro"] .bg-cyan-400,
+[data-tema="escuro"] .bg-lime-300,
+[data-tema="escuro"] .bg-red-400 { color: #14111A !important; }
+
+/* --- Campos de formulário --- */
+[data-tema="escuro"] input:not([type="checkbox"]):not([type="radio"]),
+[data-tema="escuro"] select,
+[data-tema="escuro"] textarea {
+    background-color: var(--ptm-superficie-2);
+    color: var(--ptm-texto);
+    border-color: var(--ptm-borda);
+}
+[data-tema="escuro"] input::placeholder,
+[data-tema="escuro"] textarea::placeholder { color: #8F86A0; }
+/* Ícones nativos (date/time picker) são pretos por padrão */
+[data-tema="escuro"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-tema="escuro"] input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* --- Campo de membros (multi-select) --- */
+[data-tema="escuro"] .ms-caixa { background: var(--ptm-superficie-2); border-color: var(--ptm-borda); }
+[data-tema="escuro"] .ms-entrada { color: var(--ptm-texto); }
+[data-tema="escuro"] .ms-painel { background: var(--ptm-superficie); border-color: var(--ptm-borda); }
+[data-tema="escuro"] .ms-item { color: var(--ptm-texto); border-bottom-color: #3A3444; }
+[data-tema="escuro"] .ms-item:hover { background: var(--ptm-superficie-2); }
+[data-tema="escuro"] .ms-item-ativo { background: #4A3F14; }
+[data-tema="escuro"] .ms-item-tecla { background: var(--ptm-superficie-2); color: var(--ptm-texto); }
+[data-tema="escuro"] .ms-chip { color: #14111A; }
+[data-tema="escuro"] .ms-sem-resultado { color: #A79FB5; }
+
+/* --- Botão de alternar tema --- */
+.btn-tema { cursor: pointer; }
+.btn-tema .icone-claro { display: none; }
+[data-tema="escuro"] .btn-tema .icone-claro { display: inline; }
+[data-tema="escuro"] .btn-tema .icone-escuro { display: none; }
+
+/* Evita o "flash" branco: só anima a troca depois que a página carregou */
+.tema-pronto body,
+.tema-pronto .bg-white,
+.tema-pronto .potimaker-bg {
+    transition: background-color 0.25s ease, color 0.25s ease;
+}

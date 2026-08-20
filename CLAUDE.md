@@ -136,9 +136,19 @@ Markup esperado (o JS monta o resto):
 - Busca ignora acentos nos dois sentidos ("josue" acha "Josué"); resultados que *começam* com o termo vêm primeiro, pois é o que Enter/Tab completa. Quem já foi adicionado sai das sugestões (não há como duplicar).
 - No chip, avatar e nome são elementos separados (`.ms-chip-avatar` + `.ms-chip-nome`, com `padding` próprio) — sem isso a inicial cola no nome e vira "LLuiz Miguel".
 
+### Modo escuro (`static/js/tema.js` + bloco "MODO ESCURO" em `custom.css`)
+
+O tema vive no atributo `data-tema="escuro"` do `<html>` e é persistido em `localStorage` sob a chave `potimaker-tema`. O botão (lua/sol) fica no header de `base.html` com a classe `.btn-tema` — o JS liga o clique em **todos** os elementos com essa classe, então dá para ter mais de um.
+
+- **`tema.js` é carregado de forma síncrona no `<head>`, antes do `<body>`** (em `base.html`, `login.html` e `cadastro.html`). Isso é intencional: se fosse `defer` ou ficasse no fim da página, o usuário veria um flash branco antes do tema escuro ser aplicado. Não mover para `{% block scripts %}`.
+- Sem escolha salva, segue o `prefers-color-scheme` do sistema — e continua seguindo até o usuário clicar no botão pela primeira vez.
+- Todo acesso ao `localStorage` está em `try/catch`: em modo privado ele pode lançar exceção, e o tema precisa continuar funcionando (só sem persistir).
+- Os templates usam utilitários Tailwind fixos (`bg-white`, `text-black`, `border-black`...). O tema escuro **não** reescreve os templates: inverte essas classes no CSS sob `[data-tema="escuro"]`, com `!important` para vencer a especificidade do Tailwind. Ao criar tela nova, usar as classes já existentes (`bg-white` para superfície, `text-gray-500` para texto secundário) que o modo escuro pega de graça — se introduzir uma classe de superfície nova (ex: `bg-slate-50`), adicionar o override no bloco "MODO ESCURO".
+- As cores de marca (fúcsia, amarelo, esmeralda, roxo, ciano) **não** mudam no escuro — são a identidade visual e contrastam bem. O que muda é o texto sobre elas, que vira escuro.
+
 ### Cache de estáticos em desenvolvimento
 
-`custom.css` e os JS são servidos sem hash de versão, então o navegador segura versões antigas com força e mudanças de CSS parecem "não ter efeito". Os `<link>`/`<script>` desses arquivos carregam `?v=N` manual (em `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` e `usuarios/editar_horarios.html`). **Ao alterar `custom.css` ou um JS de `static/`, incrementar o `?v=` em todos os pontos** — senão o usuário continua vendo o arquivo antigo.
+`custom.css` e os JS são servidos sem hash de versão, então o navegador segura versões antigas com força e mudanças de CSS parecem "não ter efeito". Os `<link>`/`<script>` desses arquivos carregam `?v=N` manual (em `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` e `usuarios/editar_horarios.html`; o JS do campo de membros também em `core.forms.CampoMembrosWidget.Media`). **Ao alterar `custom.css` ou um JS de `static/`, incrementar o `?v=` em todos os pontos** — senão o usuário continua vendo o arquivo antigo.
 
 ### Status do laboratório vs. escala de horários — não confundir
 
