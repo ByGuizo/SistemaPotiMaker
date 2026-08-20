@@ -41,6 +41,18 @@ O banco é distribuído **limpo** — sem inventário, projetos, atividades, eve
 - Com `--sim` apaga de verdade, dentro de uma `transaction.atomic()`.
 - Preserva os usernames de `USUARIOS_PADRAO` (`admin`, `byguizo`); `--manter user1 user2` sobrescreve essa lista. Se algum username a preservar não existir, o comando aborta sem apagar nada — evita esvaziar o banco e ficar sem acesso.
 
+### O banco de desenvolvimento tem dados reais do usuário
+
+`db.sqlite3` está no `.gitignore` e **não** é descartável: o usuário cadastra projetos, atividades e eventos de verdade ali, que não existem em lugar nenhum além do arquivo local. Já aconteceu de uma limpeza "de dados de teste" apagar o trabalho real dele — os backups eram anteriores e o `DELETE` já estava consolidado, então nada foi recuperável.
+
+Antes de qualquer operação destrutiva no banco (`limpar_banco --sim`, `delete()` em massa, `migrate --fake`, restaurar backup):
+
+1. **Listar o que existe** e conferir se há registros que o usuário criou.
+2. **Copiar `db.sqlite3`** para o scratchpad.
+3. **Apagar só o que o teste criou** — filtrar pelos objetos específicos (username/nome usados no teste), nunca `Model.objects.all().delete()`.
+
+Testes que precisam de dados devem preferir `django.test.TestCase` (banco separado, descartado no fim) ou criar objetos com prefixo identificável e remover só esses no final.
+
 ## Architecture
 
 ### Apps e suas responsabilidades
@@ -146,13 +158,49 @@ O tema vive no atributo `data-tema="escuro"` do `<html>` e é persistido em `loc
 - Os templates usam utilitários Tailwind fixos (`bg-white`, `text-black`, `border-black`...). O tema escuro **não** reescreve os templates: inverte essas classes no CSS sob `[data-tema="escuro"]`, com `!important` para vencer a especificidade do Tailwind. Ao criar tela nova, usar as classes já existentes (`bg-white` para superfície, `text-gray-500` para texto secundário) que o modo escuro pega de graça — se introduzir uma classe de superfície nova (ex: `bg-slate-50`), adicionar o override no bloco "MODO ESCURO".
 - As cores de marca (fúcsia, amarelo, esmeralda, roxo, ciano) **não** mudam no escuro — são a identidade visual e contrastam bem. O que muda é o texto sobre elas, que vira escuro.
 
+### Cabeçalho (`templates/base.html`)
+
+Três blocos lado a lado — logo, `<nav>` e ações (tema/perfil/sair) — que devem caber **sempre em uma única linha** (altura 72px). Regras que já custaram bugs:
+
+- **Nada de `flex-wrap` no container nem no `<nav>`.** Com wrap, qualquer item a mais empurra o bloco de ações para uma segunda linha e dobra a altura da barra.
+- **Nada de `overflow-x-auto` no `<nav>`.** Foi a tentativa anterior de resolver o wrap, e cortava o último item (AGENDA) em telas largas.
+- **Cuidado com o contraintuitivo**: o container tem `max-w-[1400px]`, então acima disso ele *para de crescer*. Um elemento que só aparece em telas grandes (era o caso do subtítulo "Sistema de Gerenciamento", removido) quebra o header em 1920px enquanto 1440px continua funcionando. Testar largura grande **não** é redundante com a média.
+- Rótulos do menu e do SAIR aparecem só em `xl:`; abaixo disso ficam os ícones. Tentar `lg:` faz a página inteira rolar na horizontal entre 1024 e 1200px.
+- O nome do usuário tem `max-w-[11rem]` + `truncate`, com o nome completo no `title` — nome longo não pode empurrar o layout.
+
+**Ao mexer no header, verificar no navegador de verdade** (ver seção abaixo): estimar largura de botão por contagem de caracteres já deu resultado errado.
+
+### Verificação visual com Playwright
+
+Regressão de layout não aparece em `manage.py check` nem em teste de request — só medindo no navegador. O Playwright está instalado no venv (não está no `requirements.txt`, é ferramenta de desenvolvimento):
+
+```powershell
+pip install playwright; python -m playwright install chromium
+```
+
+O que a verificação de layout precisa cobrir (aprendido errando):
+
+- **Várias larguras**, de 768 a 1920px, com passo fino — quebras acontecem entre breakpoints.
+- **Texto cortado**: comparar `scrollWidth > clientWidth` do `<span>` de cada botão (ignorando os que têm `truncate`, onde o corte é intencional).
+- **Header em uma linha**: comparar o `top` dos itens do `<nav>`, com tolerância de ~4px — o `:hover` do `.nav-link` aplica `translate` e desloca o item sob o mouse. Mover o mouse para longe antes de medir.
+- **Rolagem horizontal**: testar com `window.scrollTo(9999, 0)` e conferir se `scrollX > 0`. Comparar `scrollWidth > clientWidth` dá falso positivo nas telas de login/cadastro, que têm `.login-blob` decorativos fora da viewport de propósito.
+- **Validar o próprio teste**: reintroduzir a regressão de propósito e confirmar que ele acusa. Um "tudo OK" de teste que não detecta nada não vale nada.
+
 ### Comentários em template Django
 
 `{# ... #}` só funciona em **uma linha**. Se abrir numa linha e fechar em outra, o Django não reconhece como comentário e **imprime o texto na página** (já aconteceu no header de `base.html`). Para comentário de várias linhas usar `{% comment %}...{% endcomment %}`, ou quebrar em vários `{# #}` de uma linha cada.
 
 ### Cache de estáticos em desenvolvimento
 
-`custom.css` e os JS são servidos sem hash de versão, então o navegador segura versões antigas com força e mudanças de CSS parecem "não ter efeito". Os `<link>`/`<script>` desses arquivos carregam `?v=N` manual (em `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` e `usuarios/editar_horarios.html`; o JS do campo de membros também em `core.forms.CampoMembrosWidget.Media`). **Ao alterar `custom.css` ou um JS de `static/`, incrementar o `?v=` em todos os pontos** — senão o usuário continua vendo o arquivo antigo.
+`custom.css` e os JS são servidos sem hash de versão, então o navegador segura versões antigas com força e mudanças de CSS parecem "não ter efeito". Cada arquivo carrega um `?v=N` manual, com contador próprio:
+
+| Arquivo | Onde o `?v=` aparece |
+| --- | --- |
+| `css/custom.css` | `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` |
+| `js/multi-select.js` | `usuarios/editar_horarios.html` e `core.forms.CampoMembrosWidget.Media` |
+| `js/tema.js` | `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` |
+
+**Ao alterar um desses arquivos, incrementar o `?v=` dele em todos os pontos da linha correspondente** — senão o usuário continua vendo o arquivo antigo. Sintoma clássico: a mudança de CSS "não teve efeito" e o layout aparece sem estilo nenhum. Ao pedir para o usuário conferir, sugerir Ctrl+F5 na primeira carga.
 
 ### Status do laboratório vs. escala de horários — não confundir
 
