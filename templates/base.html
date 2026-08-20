@@ -7,7 +7,7 @@
     <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'js/tailwind-config.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -25,10 +25,8 @@
                     <i class="fa-solid fa-bolt"></i> FABLAB
                 </span>
                 <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black whitespace-nowrap">POTIMAKER</span>
-                <span class="hidden 2xl:inline text-sm text-gray-600 font-medium whitespace-nowrap">Sistema de Gerenciamento</span>
             </a>
-            {# Menu rola em telas estreitas em vez de quebrar o header em duas linhas #}
-            <nav class="flex items-center gap-2 min-w-0 overflow-x-auto nav-sem-barra">
+            <nav class="flex items-center gap-2 shrink-0">
                 <a href="{% url 'core:dashboard' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
                     <i class="fa-solid fa-gauge-high"></i> <span class="hidden xl:inline">DASHBOARD</span>
                 </a>

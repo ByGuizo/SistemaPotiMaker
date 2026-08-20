@@ -91,6 +91,19 @@ h1, h2, h3, .font-display {
     50% { box-shadow: 0 0 0 6px rgba(224, 31, 184, 0); }
 }
 
+/* Login/cadastro: os blobs decorativos ficam propositalmente fora da viewport.
+   O overflow-hidden do <body> nao basta — quem rola e o <html>, entao a pagina
+   deslizava ~140px para o lado. Prender nos dois elementos resolve. */
+html:has(> body.login-bg),
+body.login-bg {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+/* Fallback para navegadores sem :has() — os blobs sao a causa do vazamento */
+.login-blob {
+    max-width: 100vw;
+}
+
 /* Fundo animado da tela de login */
 .login-bg {
     background: linear-gradient(120deg, #5B21B6, #E01FB8, #7C3AED, #3DE0D0);
