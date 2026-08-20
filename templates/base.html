@@ -7,7 +7,7 @@
     <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'js/tailwind-config.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -19,32 +19,34 @@
 <body class="potimaker-bg min-h-screen text-black flex flex-col">
 
     <header class="bg-white border-b-4 border-black sticky top-0 z-30 anim-slide-down">
-        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 gap-4 flex-wrap">
-            <a href="{% url 'core:dashboard' %}" class="flex items-center gap-3 group">
-                <span class="bg-fuchsia-500 text-white font-black px-3 py-1 border-2 border-black rotate-badge group-hover:animate-wiggle">
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 gap-3">
+            <a href="{% url 'core:dashboard' %}" class="flex items-center gap-2 group shrink-0">
+                <span class="bg-fuchsia-500 text-white font-black px-3 py-1 border-2 border-black rotate-badge group-hover:animate-wiggle whitespace-nowrap">
                     <i class="fa-solid fa-bolt"></i> FABLAB
                 </span>
-                <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black">POTIMAKER</span>
-                <span class="hidden md:inline text-sm text-gray-600 font-medium">Sistema de Gerenciamento</span>
+                <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black whitespace-nowrap">POTIMAKER</span>
+                <span class="hidden 2xl:inline text-sm text-gray-600 font-medium whitespace-nowrap">Sistema de Gerenciamento</span>
             </a>
-            <nav class="flex items-center gap-2 flex-wrap">
-                <a href="{% url 'core:dashboard' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
-                    <i class="fa-solid fa-gauge-high"></i> <span class="hidden lg:inline">DASHBOARD</span>
+            {# min-w-0 + overflow-x-auto: em telas estreitas o menu rola em vez de
+               quebrar o header em duas linhas ou espremer os botoes #}
+            <nav class="flex items-center gap-2 min-w-0 overflow-x-auto nav-sem-barra">
+                <a href="{% url 'core:dashboard' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-gauge-high"></i> <span class="hidden xl:inline">DASHBOARD</span>
                 </a>
-                <a href="{% url 'inventario:lista_itens' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'inventario' %}bg-yellow-300{% else %}bg-white{% endif %}">
-                    <i class="fa-solid fa-boxes-stacked"></i> <span class="hidden lg:inline">INVENTÁRIO</span>
+                <a href="{% url 'inventario:lista_itens' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'inventario' %}bg-yellow-300{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span class="hidden xl:inline">INVENTÁRIO</span>
                 </a>
-                <a href="{% url 'projetos:kanban' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'projetos' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
-                    <i class="fa-solid fa-diagram-project"></i> <span class="hidden lg:inline">PROJETOS</span>
+                <a href="{% url 'projetos:kanban' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'projetos' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-diagram-project"></i> <span class="hidden xl:inline">PROJETOS</span>
                 </a>
-                <a href="{% url 'usuarios:lista_membros' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.url_name == 'lista_membros' or request.resolver_match.url_name == 'membro_form' %}bg-purple-500 text-white{% else %}bg-white{% endif %}">
-                    <i class="fa-solid fa-users"></i> <span class="hidden lg:inline">MEMBROS</span>
+                <a href="{% url 'usuarios:lista_membros' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.url_name == 'lista_membros' or request.resolver_match.url_name == 'membro_form' %}bg-purple-500 text-white{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-users"></i> <span class="hidden xl:inline">MEMBROS</span>
                 </a>
-                <a href="{% url 'agenda:calendario' %}" class="nav-link px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'agenda' %}bg-emerald-400{% else %}bg-white{% endif %}">
-                    <i class="fa-solid fa-calendar-days"></i> <span class="hidden lg:inline">AGENDA</span>
+                <a href="{% url 'agenda:calendario' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'agenda' %}bg-emerald-400{% else %}bg-white{% endif %}">
+                    <i class="fa-solid fa-calendar-days"></i> <span class="hidden xl:inline">AGENDA</span>
                 </a>
             </nav>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
                 <button type="button" class="btn-tema nav-link px-3 py-2 font-bold border-2 border-black bg-white"
                         aria-pressed="false" title="Ativar modo escuro">
                     <i class="fa-solid fa-moon icone-escuro"></i>
@@ -52,17 +54,21 @@
                     <span class="sr-only">Alternar modo escuro</span>
                 </button>
                 {% if request.user.is_authenticated %}
-                <a href="{% url 'usuarios:perfil' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white">
-                    <i class="fa-solid fa-user-astronaut"></i> {{ request.user.get_full_name|default:request.user.username|upper }}
+                {# max-w + truncate: nome longo nao empurra o header para uma segunda linha #}
+                <a href="{% url 'usuarios:perfil' %}"
+                   class="nav-link flex items-center gap-2 px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white max-w-[11rem]"
+                   title="{{ request.user.get_full_name|default:request.user.username }}">
+                    <i class="fa-solid fa-user-astronaut shrink-0"></i>
+                    <span class="hidden sm:inline truncate">{{ request.user.get_full_name|default:request.user.username|upper }}</span>
                 </a>
                 <form method="post" action="{% url 'usuarios:logout' %}">
                     {% csrf_token %}
-                    <button type="submit" class="nav-link px-3 py-2 font-bold border-2 border-black bg-white">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden lg:inline">SAIR</span>
+                    <button type="submit" class="nav-link px-3 py-2 font-bold border-2 border-black bg-white" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden xl:inline">SAIR</span>
                     </button>
                 </form>
                 {% else %}
-                <a href="{% url 'usuarios:login' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-fuchsia-500 text-white">
+                <a href="{% url 'usuarios:login' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-fuchsia-500 text-white whitespace-nowrap">
                     <i class="fa-solid fa-right-to-bracket"></i> ENTRAR
                 </a>
                 {% endif %}
