@@ -13,6 +13,18 @@ def status_laboratorio():
 
 
 def escala_atual():
+    """
+    Quem deve estar no laboratório agora.
+
+    Retorna um dict com o `horario` e um flag `em_andamento`:
+    - `em_andamento=True`  → a hora atual está dentro do slot.
+    - `em_andamento=False` → estamos num intervalo (entre slots, antes do
+      primeiro ou depois do último) e o `horario` é o **próximo** do dia.
+
+    Os slots não cobrem o dia inteiro (há 2h de intervalos entre eles, mais o
+    almoço), então olhar só "dentro do slot" deixava o painel vazio em ~14% do
+    expediente mesmo com a escala preenchida. Fora de dia útil retorna None.
+    """
     agora = timezone.localtime()
     dia_semana = agora.weekday()
     hora = agora.time()
@@ -20,9 +32,24 @@ def escala_atual():
     if dia_semana > 4:
         return None
 
-    for horario in HorarioEscala.objects.filter(dia_semana=dia_semana).prefetch_related('membros'):
+    horarios = list(
+        HorarioEscala.objects
+        .filter(dia_semana=dia_semana)
+        .prefetch_related('membros')
+    )
+    # Ordena pelo horário real do slot, não pela string ('M1' < 'T1' por acaso)
+    horarios.sort(key=lambda h: h.hora_inicio)
+
+    for horario in horarios:
         if horario.hora_inicio <= hora <= horario.hora_fim:
-            return horario
+            return {'horario': horario, 'em_andamento': True}
+
+    # Fora de qualquer slot: aponta o próximo do dia, se ainda houver
+    for horario in horarios:
+        if hora < horario.hora_inicio:
+            return {'horario': horario, 'em_andamento': False}
+
+    # Expediente do dia encerrado
     return None
 
 

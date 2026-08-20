@@ -10,12 +10,26 @@
     </div>
     <div class="p-4 flex-1">
         {% if escala %}
+        {% if escala.em_andamento %}
         <p class="text-xs font-bold uppercase text-gray-500 mb-3 flex items-center gap-1">
-            <i class="fa-regular fa-clock"></i> {{ escala.get_dia_semana_display }} · {{ escala.get_slot_display }}
+            <i class="fa-regular fa-clock"></i>
+            {{ escala.horario.get_dia_semana_display }} · {{ escala.horario.get_slot_display }}
         </p>
+        {% else %}
+        <p class="text-xs font-bold uppercase mb-3 flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 border-2 border-black bg-yellow-300">
+                <i class="fa-solid fa-hourglass-half"></i> INTERVALO
+            </span>
+            <span class="text-gray-500">
+                A seguir · {{ escala.horario.get_slot_display }}
+            </span>
+        </p>
+        {% endif %}
         <div class="flex flex-wrap gap-2">
-            {% for membro in escala.membros.all %}
-            <span class="stagger-item inline-flex items-center gap-2 px-3 py-2 border-2 border-black bg-emerald-400 font-bold text-sm" style="--i:{{ forloop.counter0 }}">
+            {% for membro in escala.horario.membros.all %}
+            <span class="stagger-item inline-flex items-center gap-2 px-3 py-2 border-2 border-black font-bold text-sm
+                {% if escala.em_andamento %}bg-emerald-400{% else %}bg-white{% endif %}"
+                style="--i:{{ forloop.counter0 }}">
                 <span class="w-6 h-6 flex items-center justify-center bg-black text-emerald-400 text-xs font-black">
                     {{ membro.first_name|slice:":1"|upper|default:membro.username|slice:":1"|upper }}
                 </span>
