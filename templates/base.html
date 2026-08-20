@@ -27,8 +27,7 @@
                 <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black whitespace-nowrap">POTIMAKER</span>
                 <span class="hidden 2xl:inline text-sm text-gray-600 font-medium whitespace-nowrap">Sistema de Gerenciamento</span>
             </a>
-            {# min-w-0 + overflow-x-auto: em telas estreitas o menu rola em vez de
-               quebrar o header em duas linhas ou espremer os botoes #}
+            {# Menu rola em telas estreitas em vez de quebrar o header em duas linhas #}
             <nav class="flex items-center gap-2 min-w-0 overflow-x-auto nav-sem-barra">
                 <a href="{% url 'core:dashboard' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
                     <i class="fa-solid fa-gauge-high"></i> <span class="hidden xl:inline">DASHBOARD</span>
