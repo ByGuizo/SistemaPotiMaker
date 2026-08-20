@@ -363,20 +363,6 @@ td .ms-chip {
    e deixa o <select multiple> do <noscript> assumir. */
 .multi-select:not(.ms-raiz) { display: none; }
 
-/* Menu do header: rola horizontalmente em telas estreitas, mas sem mostrar a
-   barra de rolagem (que cortaria as sombras brutalistas dos botoes). */
-.nav-sem-barra {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-.nav-sem-barra::-webkit-scrollbar {
-    display: none;
-}
-/* O overflow recorta a sombra/translate do hover; o padding devolve o espaco */
-.nav-sem-barra {
-    padding: 4px 2px;
-    margin: -4px -2px;
-}
 
 /* ==========================================================================
    MODO ESCURO
