@@ -146,6 +146,10 @@ O tema vive no atributo `data-tema="escuro"` do `<html>` e é persistido em `loc
 - Os templates usam utilitários Tailwind fixos (`bg-white`, `text-black`, `border-black`...). O tema escuro **não** reescreve os templates: inverte essas classes no CSS sob `[data-tema="escuro"]`, com `!important` para vencer a especificidade do Tailwind. Ao criar tela nova, usar as classes já existentes (`bg-white` para superfície, `text-gray-500` para texto secundário) que o modo escuro pega de graça — se introduzir uma classe de superfície nova (ex: `bg-slate-50`), adicionar o override no bloco "MODO ESCURO".
 - As cores de marca (fúcsia, amarelo, esmeralda, roxo, ciano) **não** mudam no escuro — são a identidade visual e contrastam bem. O que muda é o texto sobre elas, que vira escuro.
 
+### Comentários em template Django
+
+`{# ... #}` só funciona em **uma linha**. Se abrir numa linha e fechar em outra, o Django não reconhece como comentário e **imprime o texto na página** (já aconteceu no header de `base.html`). Para comentário de várias linhas usar `{% comment %}...{% endcomment %}`, ou quebrar em vários `{# #}` de uma linha cada.
+
 ### Cache de estáticos em desenvolvimento
 
 `custom.css` e os JS são servidos sem hash de versão, então o navegador segura versões antigas com força e mudanças de CSS parecem "não ter efeito". Os `<link>`/`<script>` desses arquivos carregam `?v=N` manual (em `templates/base.html`, `usuarios/login.html`, `usuarios/cadastro.html` e `usuarios/editar_horarios.html`; o JS do campo de membros também em `core.forms.CampoMembrosWidget.Media`). **Ao alterar `custom.css` ou um JS de `static/`, incrementar o `?v=` em todos os pontos** — senão o usuário continua vendo o arquivo antigo.
