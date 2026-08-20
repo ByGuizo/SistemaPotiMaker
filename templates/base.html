@@ -7,11 +7,13 @@
     <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'js/tailwind-config.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    {# Sincrono e antes do <body>: aplica o tema salvo sem flash branco #}
+    <script src="{% static 'js/tema.js' %}?v=1"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="potimaker-bg min-h-screen text-black flex flex-col">
@@ -43,6 +45,12 @@
                 </a>
             </nav>
             <div class="flex items-center gap-2">
+                <button type="button" class="btn-tema nav-link px-3 py-2 font-bold border-2 border-black bg-white"
+                        aria-pressed="false" title="Ativar modo escuro">
+                    <i class="fa-solid fa-moon icone-escuro"></i>
+                    <i class="fa-solid fa-sun icone-claro"></i>
+                    <span class="sr-only">Alternar modo escuro</span>
+                </button>
                 {% if request.user.is_authenticated %}
                 <a href="{% url 'usuarios:perfil' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white">
                     <i class="fa-solid fa-user-astronaut"></i> {{ request.user.get_full_name|default:request.user.username|upper }}
