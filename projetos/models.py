@@ -1,5 +1,17 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Case, IntegerField, Value, When
+
+# A prioridade é gravada como texto ('ALTA', 'MEDIA', 'BAIXA'), e ordenar texto
+# é alfabético: '-prioridade' dava Média → Baixa → Alta. Este Case converte
+# cada valor num número só na hora de ordenar, sem mudar o que está no banco.
+ORDEM_PRIORIDADE = Case(
+    When(prioridade='ALTA', then=Value(0)),
+    When(prioridade='MEDIA', then=Value(1)),
+    When(prioridade='BAIXA', then=Value(2)),
+    default=Value(3),
+    output_field=IntegerField(),
+)
 
 
 class Projeto(models.Model):
@@ -42,7 +54,7 @@ class Atividade(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-prioridade', 'prazo']
+        ordering = [ORDEM_PRIORIDADE.asc(), 'prazo']
 
     def __str__(self):
         return f'{self.projeto.nome} — {self.nome}'

@@ -43,6 +43,16 @@ class Usuario(AbstractUser):
         self.aprovado_em = timezone.now()
         self.save(update_fields=['status_cadastro', 'is_active', 'aprovado_por', 'aprovado_em'])
 
+    def e_ultimo_coordenador_ativo(self):
+        """True se, sem este usuário, não sobra nenhum coordenador ativo para
+        administrar o sistema (aprovar cadastros, editar membros e a escala)."""
+        if not (self.is_coordenador and self.is_active):
+            return False
+        return not Usuario.objects.filter(
+            tipo=self.Tipo.COORDENADOR, is_active=True,
+            status_cadastro=self.StatusCadastro.APROVADO,
+        ).exclude(pk=self.pk).exists()
+
     def __str__(self):
         return self.get_full_name() or self.username
 

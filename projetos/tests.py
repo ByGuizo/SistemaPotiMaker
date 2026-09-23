@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+from datetime import date
 from pathlib import Path
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -117,3 +118,34 @@ class DocumentoTecnicoTests(TestCase):
         resposta = self.client.get('/projetos/')
         self.assertContains(resposta, atividade.documento_tecnico.url)
         self.assertContains(resposta, 'Documento técnico')
+
+
+class OrdemPrioridadeTests(TestCase):
+    def test_ordem_alta_media_baixa(self):
+        projeto = Projeto.objects.create(nome='Projeto ordem')
+        for prioridade in ['BAIXA', 'MEDIA', 'ALTA', 'MEDIA', 'BAIXA', 'ALTA']:
+            Atividade.objects.create(projeto=projeto, nome=f'Ativ {prioridade}', prioridade=prioridade)
+        ordem = list(Atividade.objects.values_list('prioridade', flat=True))
+        self.assertEqual(ordem, ['ALTA', 'ALTA', 'MEDIA', 'MEDIA', 'BAIXA', 'BAIXA'])
+
+    def test_mesma_prioridade_desempata_pelo_prazo(self):
+        projeto = Projeto.objects.create(nome='Projeto prazo')
+        Atividade.objects.create(projeto=projeto, nome='depois', prioridade='ALTA', prazo=date(2026, 12, 1))
+        Atividade.objects.create(projeto=projeto, nome='antes', prioridade='ALTA', prazo=date(2026, 10, 1))
+        Atividade.objects.create(projeto=projeto, nome='baixa', prioridade='BAIXA', prazo=date(2026, 1, 1))
+        self.assertEqual(list(Atividade.objects.values_list('nome', flat=True)), ['antes', 'depois', 'baixa'])
+
+    def test_valores_gravados_nao_mudam(self):
+        projeto = Projeto.objects.create(nome='Projeto valores')
+        Atividade.objects.create(projeto=projeto, nome='a', prioridade='MEDIA')
+        self.assertEqual(Atividade.objects.get().prioridade, 'MEDIA')
+
+    def test_kanban_mostra_alta_antes_de_media_e_baixa(self):
+        usuario = Usuario.objects.create_user('teste_ordem', password='x', matricula='T-ORDEM')
+        self.client.force_login(usuario)
+        projeto = Projeto.objects.create(nome='Projeto kanban')
+        for prioridade in ['BAIXA', 'MEDIA', 'ALTA']:
+            Atividade.objects.create(projeto=projeto, nome=f'Card-{prioridade}', prioridade=prioridade)
+        html = self.client.get('/projetos/').content.decode()
+        self.assertLess(html.index('Card-ALTA'), html.index('Card-MEDIA'))
+        self.assertLess(html.index('Card-MEDIA'), html.index('Card-BAIXA'))

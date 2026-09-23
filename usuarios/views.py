@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -95,25 +96,35 @@ def negar_cadastro(request, pk):
 
 @coordenador_required
 def editar_membro(request, pk):
-    membro = get_object_or_404(Usuario, pk=pk)
+    # Pendente não é editado aqui: o único caminho é aprovar (Usuario.aprovar) ou negar.
+    # Sem o filtro, marcar "Ativo" nesta tela liberava o login sem aprovação.
+    membro = get_object_or_404(Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.APROVADO)
     if request.method == 'POST':
-        form = MembroForm(request.POST, instance=membro)
+        form = MembroForm(request.POST, instance=membro, editor=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Membro atualizado com sucesso.')
             return redirect('usuarios:lista_membros')
     else:
-        form = MembroForm(instance=membro)
+        form = MembroForm(instance=membro, editor=request.user)
     contexto = {'form': form, 'titulo': 'Editar Membro', 'voltar_url': reverse_lazy('usuarios:lista_membros')}
     return render(request, 'usuarios/membro_form.html', contexto)
 
 
 @coordenador_required
 def excluir_membro(request, pk):
-    membro = get_object_or_404(Usuario, pk=pk)
+    membro = get_object_or_404(Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.APROVADO)
     if request.method == 'POST':
-        membro.delete()
-        messages.success(request, 'Membro excluído.')
+        if membro.pk == request.user.pk:
+            messages.error(request, 'Você não pode excluir a sua própria conta.')
+        elif membro.e_ultimo_coordenador_ativo():
+            messages.error(
+                request,
+                'Não é possível excluir o último coordenador ativo. Promova outro membro a coordenador antes.'
+            )
+        else:
+            membro.delete()
+            messages.success(request, 'Membro excluído.')
     return redirect('usuarios:lista_membros')
 
 
@@ -127,21 +138,50 @@ def perfil(request):
     return render(request, 'usuarios/perfil.html', contexto)
 
 
+def _membros_escalaveis():
+    """Quem pode entrar na escala: membros aprovados e ativos."""
+    return Usuario.objects.filter(is_active=True, status_cadastro=Usuario.StatusCadastro.APROVADO)
+
+
+def _ids_permitidos(valores, permitidos):
+    """
+    Converte os valores enviados em IDs, descartando o que não serve.
+
+    O POST pode ser montado à mão: "abc" ou um número gigante estourariam
+    ValueError no membros.set() e um ID inexistente violaria a chave
+    estrangeira (erro 500 nos dois casos); um ID de pendente entraria na
+    escala. Aqui só passa inteiro que esteja em `permitidos`.
+    """
+    ids = set()
+    for valor in valores:
+        try:
+            pk = int(valor)
+        except (TypeError, ValueError):
+            continue
+        if pk in permitidos:
+            ids.add(pk)
+    return ids
+
+
 @coordenador_required
 def editar_horarios(request):
     if request.method == 'POST':
-        for dia_valor, _dia_label in HorarioEscala.DiaSemana.choices:
-            for slot_valor, _slot_label in HorarioEscala.Slot.choices:
-                nome_campo = f'celula_{dia_valor}_{slot_valor}'
-                ids_membros = request.POST.getlist(nome_campo)
-                horario, _criado = HorarioEscala.objects.get_or_create(dia_semana=dia_valor, slot=slot_valor)
-                horario.membros.set(ids_membros)
+        permitidos = set(_membros_escalaveis().values_list('pk', flat=True))
+        # Tudo ou nada: se uma célula falhar no meio, as anteriores não ficam
+        # gravadas pela metade — a escala continua como estava.
+        with transaction.atomic():
+            for dia_valor, _dia_label in HorarioEscala.DiaSemana.choices:
+                for slot_valor, _slot_label in HorarioEscala.Slot.choices:
+                    nome_campo = f'celula_{dia_valor}_{slot_valor}'
+                    ids_membros = _ids_permitidos(request.POST.getlist(nome_campo), permitidos)
+                    horario, _criado = HorarioEscala.objects.get_or_create(dia_semana=dia_valor, slot=slot_valor)
+                    horario.membros.set(ids_membros)
         messages.success(request, 'Escala de horários atualizada com sucesso.')
         return redirect('core:dashboard')
 
     contexto = {
         'linhas': grade_horarios(),
         'dias': HorarioEscala.DiaSemana.choices,
-        'membros': Usuario.objects.filter(is_active=True).order_by('first_name'),
+        'membros': _membros_escalaveis().order_by('first_name'),
     }
     return render(request, 'usuarios/editar_horarios.html', contexto)

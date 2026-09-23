@@ -22,7 +22,24 @@ class LoginForm(EstiloPotiMakerMixin, AuthenticationForm):
         return super().get_invalid_login_error()
 
 
-class CadastroForm(EstiloPotiMakerMixin, forms.ModelForm):
+class UsernameUnicoMixin:
+    """
+    Recusa um nome de usuário que já exista com outra combinação de maiúsculas
+    ("Guizo" x "guizo"). O unique do banco diferencia maiúsculas; sem isto,
+    daria para criar duas contas que parecem a mesma pessoa.
+    """
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        existe = Usuario.objects.filter(username__iexact=username).exclude(pk=self.instance.pk)
+        if existe.exists():
+            raise forms.ValidationError(
+                'Já existe um usuário com esse nome (maiúsculas e minúsculas não fazem diferença).'
+            )
+        return username
+
+
+class CadastroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
     """Auto-cadastro público — o usuário nasce pendente de aprovação."""
 
     password = forms.CharField(label='Senha', widget=forms.PasswordInput)
@@ -60,7 +77,7 @@ class CadastroForm(EstiloPotiMakerMixin, forms.ModelForm):
         return usuario
 
 
-class MembroForm(EstiloPotiMakerMixin, forms.ModelForm):
+class MembroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
     """Edição de membro já existente pelo coordenador (não cria novos)."""
 
     password = forms.CharField(
@@ -76,6 +93,39 @@ class MembroForm(EstiloPotiMakerMixin, forms.ModelForm):
             'username': 'Usuário',
             'is_active': 'Ativo',
         }
+
+    def __init__(self, *args, editor=None, **kwargs):
+        # editor = o coordenador logado que está fazendo a edição
+        super().__init__(*args, **kwargs)
+        self.editor = editor
+
+    def clean_password(self):
+        senha = self.cleaned_data.get('password')
+        if senha:
+            # Mesmas regras do auto-cadastro (tamanho mínimo, senhas comuns...)
+            validate_password(senha, user=self.instance)
+        return senha
+
+    def clean(self):
+        dados = super().clean()
+        # self.instance ainda tem os valores do banco: construct_instance só
+        # roda depois do clean()
+        membro = self.instance
+        desativando = 'is_active' in dados and not dados['is_active']
+        rebaixando = dados.get('tipo') and dados['tipo'] != Usuario.Tipo.COORDENADOR
+
+        if self.editor and membro.pk == self.editor.pk and desativando:
+            self.add_error('is_active', 'Você não pode desativar a sua própria conta.')
+        elif membro.e_ultimo_coordenador_ativo():
+            mensagem = (
+                'Este é o último coordenador ativo. Promova outro membro a coordenador '
+                'antes, senão ninguém mais consegue administrar o sistema.'
+            )
+            if desativando:
+                self.add_error('is_active', mensagem)
+            if rebaixando:
+                self.add_error('tipo', mensagem)
+        return dados
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
