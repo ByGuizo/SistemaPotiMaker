@@ -65,12 +65,12 @@ Card independente da escala de horários: deriva "aberto/fechado" e a contagem d
 |---|---|
 | Backend | Django 6.0 (Python) |
 | Banco de dados (dev) | SQLite |
-| Frontend | Django Templates + Tailwind CSS (via CDN) |
+| Frontend | Django Templates + Tailwind CSS 3.4 (compilado pelo CLI standalone) |
 | Interatividade | HTMX (fragmentos de HTML renderizados no servidor, sem SPA) |
 | Ícones | Font Awesome 6 |
 | Tipografia | Space Grotesk (títulos) + Manrope (corpo), via Google Fonts |
 
-Não há build step de frontend (sem Webpack/Vite/npm) — Tailwind, HTMX e Font Awesome são carregados via CDN, o que mantém o projeto simples de rodar e implantar.
+Não há Node, npm, Webpack nem Vite. O único passo de build é o Tailwind, gerado por um executável standalone (veja [Regenerar o CSS do Tailwind](#regenerar-o-css-do-tailwind)); o CSS compilado (`static/css/tailwind.css`) fica versionado no git, então para só rodar o sistema não é preciso compilar nada. HTMX é servido de `static/`; Font Awesome e as fontes vêm de CDN.
 
 ---
 
@@ -84,7 +84,8 @@ inventario/              # modelo e views de itens do inventário
 projetos/                # modelos Projeto/Atividade e views do Kanban
 agenda/                  # modelo e views do calendário/eventos
 templates/               # base.html e partials compartilhados entre apps
-static/                  # CSS customizado, config do Tailwind, HTMX local
+static/                  # CSS customizado, Tailwind compilado, JS e HTMX local
+tailwind.config.js       # configuração do Tailwind (cores, sombras, animações)
 ```
 
 Cada app de domínio (`usuarios`, `inventario`, `projetos`, `agenda`) segue o mesmo padrão: `models.py`, `forms.py`, `views.py`, `urls.py`, e templates próprios em `app/templates/app/`. Views que respondem a requisições HTMX retornam apenas o fragmento HTML relevante; requisições normais recebem a página completa estendendo `base.html`.
@@ -132,6 +133,34 @@ python manage.py runserver
 ```
 
 Acesse `http://127.0.0.1:8000/`. Todo o sistema exige login — use o superusuário criado.
+
+### Regenerar o CSS do Tailwind
+
+O `static/css/tailwind.css` contém só as classes que os templates usam. **Depois de
+usar uma classe do Tailwind que ainda não aparecia em nenhum template** (ou de mexer
+no `tailwind.config.js`), é preciso regenerá-lo — senão a classe nova não tem efeito.
+
+1. Baixe o executável **uma vez** — Tailwind CLI standalone **v3.4.x** (não use a 4.x,
+   que tem outro formato de configuração), do release oficial em
+   <https://github.com/tailwindlabs/tailwindcss/releases/tag/v3.4.19>:
+   `tailwindcss-windows-x64.exe` no Windows ou `tailwindcss-linux-x64` no Linux.
+   Salve na raiz do projeto como `tailwindcss.exe` (Windows) ou `tailwindcss-linux-x64`
+   (Linux, com `chmod +x`). Esses arquivos estão no `.gitignore`.
+2. Gere o CSS:
+
+   ```powershell
+   .\tailwindcss.exe -i tailwind-entrada.css -o static/css/tailwind.css --minify
+   ```
+
+   Durante o desenvolvimento, `--watch` no lugar de `--minify` regera a cada alteração.
+3. Incremente o `?v=` do `tailwind.css` em `templates/base.html`,
+   `usuarios/templates/usuarios/login.html` e `usuarios/templates/usuarios/cadastro.html`.
+4. Faça commit do `static/css/tailwind.css` junto com o template alterado.
+
+O `content` do `tailwind.config.js` inclui, além dos templates, `core/templatetags/*.py`
+e `core/forms.py`, porque as cores dos badges e o estilo dos campos são montados em
+Python. Classes montadas por concatenação (ex.: `"bg-" + cor`) **não** são detectadas:
+escreva sempre o nome inteiro da classe.
 
 ---
 

@@ -7,3 +7,6 @@ venv/
 *.log
 .env
 staticfiles/
+# Executável do Tailwind CLI (baixar do release oficial, ver README)
+/tailwindcss.exe
+/tailwindcss-*

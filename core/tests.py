@@ -87,11 +87,14 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
             k: v for k, v in os.environ.items()
             if not k.startswith('DJANGO_')
         }
+        # Sem isso, no Windows o filho escreve em cp1252 e os acentos da
+        # mensagem de erro quebram a leitura da saída
+        ambiente['PYTHONIOENCODING'] = 'utf-8'
         ambiente.update(variaveis)
         return subprocess.run(
             [sys.executable, 'manage.py', *args],
             cwd=settings.BASE_DIR, env=ambiente,
-            capture_output=True, text=True, encoding='utf-8',
+            capture_output=True, text=True, encoding='utf-8', errors='replace',
         )
 
     def test_producao_sem_secret_key_nao_inicia(self):
