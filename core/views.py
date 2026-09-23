@@ -1,3 +1,8 @@
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import FileResponse, Http404
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -43,3 +48,33 @@ def dashboard(request):
         'itens_manutencao': Item.objects.filter(status=Item.Status.MANUTENCAO)[:5],
     }
     return render(request, 'core/dashboard.html', contexto)
+
+
+# Fotos de perfil abrem no navegador; todo o resto (documentos técnicos) é baixado
+PASTAS_INLINE = ('perfis/',)
+EXTENSOES_INLINE = {'.jpg', '.jpeg', '.png', '.webp'}
+
+
+@login_required
+def servir_media(request, caminho):
+    """
+    Entrega os arquivos enviados (media/) só para quem está logado.
+
+    Substitui o static() do Django, que só funciona com DEBUG=True e não exige
+    login. O caminho vem da URL, então é resolvido e conferido: tem que continuar
+    dentro de MEDIA_ROOT — "../settings.py" ou "C:/Windows/..." viram 404.
+    """
+    raiz = Path(settings.MEDIA_ROOT).resolve()
+    try:
+        arquivo = (raiz / caminho).resolve()
+    except (OSError, ValueError):
+        raise Http404
+    if not arquivo.is_relative_to(raiz) or not arquivo.is_file():
+        raise Http404
+
+    relativo = arquivo.relative_to(raiz).as_posix()
+    inline = relativo.startswith(PASTAS_INLINE) and arquivo.suffix.lower() in EXTENSOES_INLINE
+    resposta = FileResponse(open(arquivo, 'rb'), as_attachment=not inline, filename=arquivo.name)
+    # Mesmo que um arquivo perigoso passe, o navegador não executa scripts dele
+    resposta['Content-Security-Policy'] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox"
+    return resposta

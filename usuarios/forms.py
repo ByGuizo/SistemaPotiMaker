@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 
-from core.forms import EstiloPotiMakerMixin
+from core.forms import EstiloPotiMakerMixin, SubstituiArquivoMixin
 
 from .models import Usuario
 

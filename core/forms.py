@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.db import models, transaction
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -58,6 +59,36 @@ class CampoMembrosWidget(forms.SelectMultiple):
             mark_safe(dados),
             nativo,
         )
+
+
+class SubstituiArquivoMixin:
+    """
+    Apaga do disco o arquivo antigo quando um campo de arquivo (FileField ou
+    ImageField) é trocado ou limpo no formulário.
+
+    O Django não faz isso sozinho: sem este mixin, cada troca de foto deixa
+    o arquivo anterior esquecido em media/. A remoção só acontece depois que o
+    registro com o arquivo novo foi gravado no banco (transaction.on_commit) —
+    se algo falhar antes, o arquivo antigo continua lá e ainda é o válido.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._arquivos_antigos = {
+            campo.name: getattr(self.instance, campo.name).name
+            for campo in self.instance._meta.get_fields()
+            if isinstance(campo, models.FileField) and campo.name in self.fields
+        }
+
+    def save(self, commit=True):
+        objeto = super().save(commit=commit)
+        if commit:
+            for nome_campo, antigo in self._arquivos_antigos.items():
+                arquivo = getattr(objeto, nome_campo)
+                if antigo and antigo != arquivo.name:
+                    storage = arquivo.storage
+                    transaction.on_commit(lambda s=storage, n=antigo: s.delete(n))
+        return objeto
 
 
 class EstiloPotiMakerMixin:

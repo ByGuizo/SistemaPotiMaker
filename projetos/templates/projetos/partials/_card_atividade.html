@@ -22,6 +22,11 @@
         <i class="fa-regular fa-calendar"></i> Prazo: {{ atividade.prazo|date:"d/m/Y" }}
     </p>
     {% endif %}
+    {% if atividade.documento_tecnico %}
+    <a href="{{ atividade.documento_tecnico.url }}" class="text-xs font-bold underline mb-2 inline-flex items-center gap-1 alvo-toque">
+        <i class="fa-solid fa-file-arrow-down"></i> Documento técnico
+    </a>
+    {% endif %}
     <div class="flex justify-between items-center border-t-2 border-black pt-2 mt-2">
         <div class="flex gap-1">
             {% if atividade.status != "A_FAZER" %}
