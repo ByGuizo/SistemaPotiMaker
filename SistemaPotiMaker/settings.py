@@ -121,6 +121,9 @@ DATABASES = {
     }
 }
 
+# Pasta das cópias feitas por "python manage.py backup_banco"
+BACKUP_DIR = BASE_DIR / 'backups'
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

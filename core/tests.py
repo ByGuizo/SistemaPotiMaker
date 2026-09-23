@@ -1,12 +1,16 @@
 import os
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
+from contextlib import closing
+from io import StringIO
 from pathlib import Path
 
 from django.conf import settings
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.core.management import CommandError, call_command
+from django.test import SimpleTestCase, TestCase, TransactionTestCase, override_settings
 
 from usuarios.models import Usuario
 
@@ -113,3 +117,57 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         saida = resultado.stdout + resultado.stderr
         self.assertIn('security.W004', saida)
         self.assertIn('1 issue', saida)
+
+
+class BackupBancoTests(TransactionTestCase):
+    """
+    TransactionTestCase: os dados do teste são gravados de verdade (no banco de
+    teste), como aconteceria com o sistema rodando. O banco real não é tocado.
+    """
+
+    def setUp(self):
+        self.pasta = Path(tempfile.mkdtemp(prefix='potimaker-backup-'))
+        self.addCleanup(shutil.rmtree, self.pasta, ignore_errors=True)
+        ajuste = override_settings(BACKUP_DIR=self.pasta)
+        ajuste.enable()
+        self.addCleanup(ajuste.disable)
+
+    def _backups(self):
+        return sorted(self.pasta.glob('db_*.sqlite3'))
+
+    def test_backup_contem_os_dados_e_passa_na_integridade(self):
+        Usuario.objects.create_user('zz_backup', password='x', matricula='T-BACKUP')
+        call_command('backup_banco', stdout=StringIO())
+
+        backups = self._backups()
+        self.assertEqual(len(backups), 1)
+        with closing(sqlite3.connect(backups[0])) as copia:
+            self.assertEqual(copia.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
+            nomes = [r[0] for r in copia.execute('SELECT username FROM usuarios_usuario')]
+        self.assertIn('zz_backup', nomes)
+        self.assertEqual(list(self.pasta.glob('*.parcial')), [])
+
+    def test_nome_tem_data_e_hora(self):
+        call_command('backup_banco', stdout=StringIO())
+        self.assertRegex(self._backups()[0].name, r'^db_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite3$')
+
+    def test_mantem_so_os_n_mais_recentes(self):
+        for dia in range(1, 6):
+            (self.pasta / f'db_2020-01-0{dia}_03-00-00.sqlite3').write_bytes(b'antigo')
+        outro_arquivo = self.pasta / 'anotacoes.txt'
+        outro_arquivo.write_text('não é backup')
+
+        call_command('backup_banco', manter=3, stdout=StringIO())
+
+        nomes = [b.name for b in self._backups()]
+        self.assertEqual(len(nomes), 3)
+        self.assertEqual(nomes[:2], ['db_2020-01-04_03-00-00.sqlite3', 'db_2020-01-05_03-00-00.sqlite3'])
+        self.assertFalse(nomes[2].startswith('db_2020'))  # o novo foi mantido
+        self.assertTrue(outro_arquivo.exists())  # só mexe nos arquivos db_*.sqlite3
+
+    def test_manter_zero_e_recusado_sem_apagar_nada(self):
+        antigo = self.pasta / 'db_2020-01-01_03-00-00.sqlite3'
+        antigo.write_bytes(b'antigo')
+        with self.assertRaises(CommandError):
+            call_command('backup_banco', manter=0, stdout=StringIO())
+        self.assertTrue(antigo.exists())

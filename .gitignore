@@ -12,3 +12,5 @@ staticfiles/
 /tailwindcss-*
 # Cache em arquivo usado em produção (contador de cadastros por IP)
 cache/
+# Cópias do banco feitas por "manage.py backup_banco" (têm os hashes de senha)
+backups/
