@@ -112,7 +112,7 @@ A autenticação é obrigatória em todo o sistema (via `usuarios.middleware.Log
 
 ## Como rodar localmente
 
-Pré-requisitos: Python 3.11+ e um ambiente virtual.
+Pré-requisitos: Python 3.12+ (exigência do Django 6.0) e um ambiente virtual.
 
 ```powershell
 # 1. Criar e ativar o ambiente virtual
@@ -122,15 +122,22 @@ venv\Scripts\activate
 # 2. Instalar dependências
 pip install -r requirements.txt
 
-# 3. Aplicar as migrations
+# 3. Criar a configuração local (liga o modo de desenvolvimento)
+copy .env.exemplo .env
+
+# 4. Aplicar as migrations
 python manage.py migrate
 
-# 4. Criar um superusuário (acesso ao /admin/)
+# 5. Criar um superusuário (acesso ao /admin/)
 python manage.py createsuperuser
 
-# 5. Rodar o servidor de desenvolvimento
+# 6. Rodar o servidor de desenvolvimento
 python manage.py runserver
 ```
+
+Sem o arquivo `.env`, o sistema entende que está em **produção** (`DEBUG` desligado)
+e se recusa a iniciar sem uma `DJANGO_SECRET_KEY`. Isso é proposital — veja
+`docs/NOTAS_DE_CORRECOES.md`. Para colocar em um servidor, siga `docs/IMPLANTACAO.md`.
 
 Acesse `http://127.0.0.1:8000/`. Todo o sistema exige login — use o superusuário criado.
 
@@ -200,6 +207,6 @@ O layout base usa um sticky footer (`body` como flex container em coluna, `main`
 ## Roadmap / próximos passos
 
 - [ ] Migrar de SQLite para PostgreSQL para uso em produção
-- [ ] Configurar variáveis de ambiente para `SECRET_KEY` e `DEBUG`
+- [x] Configurar variáveis de ambiente para `SECRET_KEY` e `DEBUG` (`.env` no desenvolvimento; ver `docs/IMPLANTACAO.md`)
 - [ ] Deploy em produção (domínio próprio + HTTPS)
-- [ ] Backups automáticos do banco de dados
+- [x] Backups do banco de dados (`python manage.py backup_banco`; agendamento no cron descrito em `docs/IMPLANTACAO.md`)
