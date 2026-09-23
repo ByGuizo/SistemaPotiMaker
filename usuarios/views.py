@@ -13,6 +13,7 @@ from projetos.models import Projeto
 from .decorators import coordenador_required
 from .forms import CadastroForm, LoginForm, MembroForm
 from .models import HorarioEscala
+from .seguranca import cadastro_bloqueado, registrar_cadastro
 from .services import grade_horarios
 
 Usuario = get_user_model()
@@ -32,14 +33,26 @@ def cadastro(request):
     if request.user.is_authenticated:
         return redirect('core:dashboard')
 
+    mensagem_sucesso = 'Cadastro enviado! Aguarde a aprovação de um coordenador para acessar o sistema.'
     if request.method == 'POST':
+        if request.POST.get(CadastroForm.CAMPO_ARMADILHA):
+            # Robô: responde como se tivesse dado certo, para ele não perceber, e não cria nada
+            messages.success(request, mensagem_sucesso)
+            return redirect('usuarios:login')
+
         form = CadastroForm(request.POST)
+        if cadastro_bloqueado(request):
+            form.is_valid()
+            form.add_error(None, (
+                'Foram feitos muitos cadastros a partir desta rede na última hora. '
+                'Tente novamente mais tarde.'
+            ))
+            return render(request, 'usuarios/cadastro.html', {'form': form}, status=429)
+
         if form.is_valid():
             form.save()
-            messages.success(
-                request,
-                'Cadastro enviado! Aguarde a aprovação de um coordenador para acessar o sistema.'
-            )
+            registrar_cadastro(request)
+            messages.success(request, mensagem_sucesso)
             return redirect('usuarios:login')
     else:
         form = CadastroForm()

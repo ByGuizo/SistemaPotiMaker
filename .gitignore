@@ -10,3 +10,5 @@ staticfiles/
 # Executável do Tailwind CLI (baixar do release oficial, ver README)
 /tailwindcss.exe
 /tailwindcss-*
+# Cache em arquivo usado em produção (contador de cadastros por IP)
+cache/

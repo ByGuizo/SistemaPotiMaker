@@ -42,8 +42,16 @@ class UsernameUnicoMixin:
 class CadastroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
     """Auto-cadastro público — o usuário nasce pendente de aprovação."""
 
+    # Honeypot ("pote de mel"): campo escondido por CSS que pessoas não veem e
+    # robôs de spam preenchem. Se vier preenchido, a view descarta o cadastro.
+    CAMPO_ARMADILHA = 'website'
+
     password = forms.CharField(label='Senha', widget=forms.PasswordInput)
     password_confirmacao = forms.CharField(label='Confirme a senha', widget=forms.PasswordInput)
+    website = forms.CharField(
+        label='Deixe este campo em branco', required=False,
+        widget=forms.TextInput(attrs={'autocomplete': 'off', 'tabindex': '-1'}),
+    )
 
     class Meta:
         model = Usuario

@@ -51,6 +51,12 @@
                 </div>
                 {% endfor %}
 
+                {% if mensagem_bloqueio %}
+                <p class="text-xs text-red-600 font-bold mb-3 bg-red-50 border-2 border-red-400 px-3 py-2 animate-shake" role="alert">
+                    <i class="fa-solid fa-lock"></i> {{ mensagem_bloqueio }}
+                </p>
+                {% endif %}
+
                 {% if form.non_field_errors %}
                 <p class="text-xs text-red-600 font-bold mb-3 bg-red-50 border-2 border-red-400 px-3 py-2 animate-shake">
                     <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}

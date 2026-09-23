@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'axes',
     'core',
     'usuarios',
     'inventario',
@@ -78,6 +80,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'usuarios.middleware.LoginObrigatorioMiddleware',
+    # Troca a resposta pela tela de bloqueio quando o login está bloqueado (tem que ser o último)
+    'axes.middleware.AxesMiddleware',
+]
+
+# O AxesStandaloneBackend vem primeiro: recusa a tentativa de quem está
+# bloqueado antes mesmo de conferir a senha.
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'SistemaPotiMaker.urls'
@@ -170,6 +181,32 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'usuarios:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:dashboard'
+
+
+# Proteção contra força bruta no login (django-axes) — ver usuarios/seguranca.py
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+# Bloqueia a combinação usuário + IP: quem erra a senha de "maria" no laboratório
+# não bloqueia a "maria" que entra de casa, nem os outros usuários do mesmo IP.
+AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]
+AXES_RESET_ON_SUCCESS = True
+AXES_CLIENT_IP_CALLABLE = 'usuarios.seguranca.ip_do_cliente'
+AXES_USERNAME_CALLABLE = 'usuarios.seguranca.usuario_para_axes'
+AXES_LOCKOUT_CALLABLE = 'usuarios.seguranca.resposta_bloqueio'
+# Só True quando o gunicorn estiver atrás do nginx (que define X-Real-IP) e
+# não puder ser acessado direto. Ver docs/IMPLANTACAO.md.
+CONFIAR_X_REAL_IP = os.environ.get('DJANGO_CONFIAR_X_REAL_IP', 'False') == 'True'
+
+# Cache: guarda o contador de cadastros por IP. O padrão do Django fica na
+# memória de cada processo; com vários workers do gunicorn, cada um teria o seu
+# contador. Em produção, o cache em arquivo é compartilhado entre eles.
+if not DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': BASE_DIR / 'cache',
+        }
+    }
 
 
 # Segurança em produção (HTTPS atrás do nginx)

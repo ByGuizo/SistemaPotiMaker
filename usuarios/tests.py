@@ -1,11 +1,14 @@
 import io
 import shutil
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from PIL import Image
 
 from .forms import CadastroForm, MembroForm, PerfilForm
@@ -276,3 +279,136 @@ class UsernameSemMaiusculasTests(TestCase):
     def test_edicao_aceita_mudar_a_caixa_do_proprio_nome(self):
         form = self._edicao(self.existente, 'guizo_teste')
         self.assertTrue(form.is_valid(), form.errors)
+
+
+class BloqueioLoginTests(TestCase):
+    URL = '/usuarios/login/'
+    SENHA = 'Senha-Forte-2026!'
+
+    def setUp(self):
+        self.maria = _criar('maria_login')
+
+    def _login(self, senha, username='maria_login', ip='10.0.0.1'):
+        return self.client.post(self.URL, {'username': username, 'password': senha}, REMOTE_ADDR=ip)
+
+    def _errar(self, vezes, **kwargs):
+        for _ in range(vezes):
+            self.assertEqual(self._login('senha-errada', **kwargs).status_code, 200)
+
+    def _bloquear(self, **kwargs):
+        """4 erros normais; o 5º já recebe a tela de bloqueio."""
+        self._errar(4, **kwargs)
+        self.assertEqual(self._login('senha-errada', **kwargs).status_code, 429)
+
+    def _logado(self):
+        return '_auth_user_id' in self.client.session
+
+    def test_quatro_erros_ainda_permitem_entrar(self):
+        self._errar(4)
+        self.assertEqual(self._login(self.SENHA).status_code, 302)
+        self.assertTrue(self._logado())
+
+    def test_cinco_erros_bloqueiam_mesmo_com_a_senha_certa(self):
+        self._bloquear()
+        resposta = self._login(self.SENHA)
+        self.assertEqual(resposta.status_code, 429)
+        self.assertContains(resposta, 'bloqueado por 15 minutos', status_code=429)
+        self.assertFalse(self._logado())
+
+    def test_bloqueio_vale_para_a_combinacao_usuario_e_ip(self):
+        self._bloquear(ip='10.0.0.1')
+        # Mesmo usuário, outro IP: entra
+        self.assertEqual(self._login(self.SENHA, ip='10.0.0.2').status_code, 302)
+        self.client.logout()
+        # Outro usuário, mesmo IP: entra
+        _criar('joao_login')
+        self.assertEqual(self._login(self.SENHA, username='joao_login', ip='10.0.0.1').status_code, 302)
+
+    def test_variar_maiusculas_nao_da_tentativas_extras(self):
+        for nome in ['MARIA_LOGIN', 'Maria_Login', 'maria_LOGIN', 'mAria_login', 'maria_login']:
+            self._login('senha-errada', username=nome)
+        self.assertEqual(self._login(self.SENHA).status_code, 429)
+
+    def test_bloqueio_expira_depois_de_15_minutos(self):
+        from axes.models import AccessAttempt
+
+        self._bloquear()
+        self.assertEqual(self._login(self.SENHA).status_code, 429)
+        AccessAttempt.objects.update(attempt_time=timezone.now() - timedelta(minutes=16))
+        self.assertEqual(self._login(self.SENHA).status_code, 302)
+
+    def test_login_certo_zera_o_contador(self):
+        self._errar(4)
+        self._login(self.SENHA)
+        self.client.logout()
+        self._errar(4)
+        self.assertEqual(self._login(self.SENHA).status_code, 302)
+
+    def test_pendente_continua_vendo_aguardando_aprovacao(self):
+        pendente = _criar('pendente_login', pendente=True)
+        self._errar(3, username=pendente.username)
+        resposta = self._login(self.SENHA, username=pendente.username)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'aguardando a aprovação')
+        self.assertFalse(self._logado())
+
+    def test_pendente_com_senha_errada_nao_revela_o_status(self):
+        pendente = _criar('pendente_login2', pendente=True)
+        resposta = self._login('senha-errada', username=pendente.username)
+        self.assertNotContains(resposta, 'aguardando a aprovação')
+
+    def test_ip_real_so_e_lido_do_nginx_quando_configurado(self):
+        from django.test import RequestFactory
+
+        from .seguranca import ip_do_cliente
+
+        request = RequestFactory().get('/', REMOTE_ADDR='127.0.0.1', HTTP_X_REAL_IP='200.1.2.3')
+        with self.settings(CONFIAR_X_REAL_IP=False):
+            self.assertEqual(ip_do_cliente(request), '127.0.0.1')
+        with self.settings(CONFIAR_X_REAL_IP=True):
+            self.assertEqual(ip_do_cliente(request), '200.1.2.3')
+
+
+class LimiteCadastroTests(TestCase):
+    URL = '/usuarios/cadastro/'
+
+    def setUp(self):
+        cache.clear()
+
+    def _cadastrar(self, n, ip='10.0.0.1', **extra):
+        dados = {
+            'first_name': f'Pessoa {n}', 'username': f'pessoa_{n}', 'matricula': f'MAT-{n}',
+            'password': 'Senha-Forte-2026!', 'password_confirmacao': 'Senha-Forte-2026!',
+        }
+        dados.update(extra)
+        return self.client.post(self.URL, dados, REMOTE_ADDR=ip)
+
+    def test_sexto_cadastro_na_mesma_hora_e_recusado(self):
+        for n in range(5):
+            self.assertEqual(self._cadastrar(n).status_code, 302)
+        resposta = self._cadastrar(5)
+        self.assertEqual(resposta.status_code, 429)
+        self.assertContains(resposta, 'muitos cadastros', status_code=429)
+        self.assertFalse(Usuario.objects.filter(username='pessoa_5').exists())
+
+    def test_limite_e_por_ip(self):
+        for n in range(5):
+            self._cadastrar(n)
+        self.assertEqual(self._cadastrar(5, ip='10.0.0.2').status_code, 302)
+        self.assertTrue(Usuario.objects.filter(username='pessoa_5').exists())
+
+    def test_formulario_com_erro_nao_conta_no_limite(self):
+        for n in range(6):
+            self._cadastrar(n, password_confirmacao='diferente')
+        self.assertEqual(self._cadastrar(99).status_code, 302)
+
+    def test_honeypot_preenchido_nao_cria_usuario(self):
+        resposta = self._cadastrar(1, website='http://spam.example')
+        self.assertEqual(resposta.status_code, 302)  # parece sucesso para o robô
+        self.assertFalse(Usuario.objects.filter(username='pessoa_1').exists())
+
+    def test_honeypot_esta_escondido_na_pagina(self):
+        html = self.client.get(self.URL).content.decode()
+        self.assertIn('name="website"', html)
+        self.assertIn('left:-10000px', html)
+        self.assertIn('tabindex="-1"', html)
