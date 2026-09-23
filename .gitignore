@@ -5,3 +5,5 @@ media/
 .venv/
 venv/
 *.log
+.env
+staticfiles/

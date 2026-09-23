@@ -13,24 +13,40 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Lê o arquivo .env (se existir) para o ambiente. Variáveis já definidas no
+# sistema têm prioridade — em produção elas vêm do systemd, não do .env.
+load_dotenv(BASE_DIR / '.env')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Em produção, defina a variável de ambiente DJANGO_SECRET_KEY.
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-9_74_k@#n^(k20zi*r95150acd4=tp_+nid5xzp!amf*+57ps1',
-)
+def _lista_env(nome):
+    """Lê uma variável separada por vírgulas como lista, ignorando itens vazios."""
+    return [item.strip() for item in os.environ.get(nome, '').split(',') if item.strip()]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
+# Padrão seguro: sem DJANGO_DEBUG=True explícito, o sistema roda em modo produção.
+# No desenvolvimento, o .env (copiado de .env.exemplo) liga o DEBUG.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+
+# A chave assina sessões e tokens CSRF: quem a conhece forja login.
+# A chave fixa abaixo só é aceita em desenvolvimento.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            'Defina a variável de ambiente DJANGO_SECRET_KEY (obrigatória com DJANGO_DEBUG=False).'
+        )
+    SECRET_KEY = 'django-insecure-9_74_k@#n^(k20zi*r95150acd4=tp_+nid5xzp!amf*+57ps1'
+
+ALLOWED_HOSTS = _lista_env('DJANGO_ALLOWED_HOSTS')
+
+# Origens (com https://) autorizadas a enviar formulários — necessário atrás do nginx.
+CSRF_TRUSTED_ORIGINS = _lista_env('DJANGO_CSRF_TRUSTED_ORIGINS')
 
 
 # Application definition
@@ -53,6 +69,8 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serve os arquivos de static/ direto pelo Django em produção (logo após o SecurityMiddleware)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,6 +146,21 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Destino do "collectstatic" — é daqui que o WhiteNoise serve em produção
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        # Em produção, nomes com hash (custom.abc123.css) + compressão: o navegador
+        # pode guardar em cache para sempre sem nunca ficar com versão velha.
+        # Em desenvolvimento fica o storage simples, que não exige collectstatic.
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
+    },
+}
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -137,3 +170,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'usuarios:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:dashboard'
+
+
+# Segurança em produção (HTTPS atrás do nginx)
+# Em desenvolvimento (runserver, http://) essas opções quebrariam o acesso.
+if not DEBUG:
+    # Cookies de sessão e CSRF só trafegam por HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Qualquer acesso por http:// é redirecionado para https://.
+    # DJANGO_SECURE_SSL_REDIRECT=False desliga (ex.: se o próprio nginx já redireciona).
+    SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True') == 'True'
+    # O nginx recebe o HTTPS e repassa em HTTP para o gunicorn; este cabeçalho
+    # diz ao Django que a requisição original era segura. Só é seguro porque o
+    # nginx sobrescreve o X-Forwarded-Proto — nunca expor o gunicorn direto.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Impede o navegador de "adivinhar" o tipo de um arquivo (ex.: tratar upload como HTML)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # HSTS: o navegador passa a recusar http:// para este domínio pelo tempo definido.
+    # CUIDADO: depois de ativado, não há como desfazer nos navegadores que já
+    # visitaram o site até o prazo expirar — se o certificado vencer ou o HTTPS
+    # cair, o sistema fica inacessível. Só ativar com o HTTPS estável; comece
+    # com um valor baixo (3600 = 1 hora) antes de subir para 31536000 (1 ano).
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '0'))
