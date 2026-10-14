@@ -1,8 +1,14 @@
 from datetime import time
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils import timezone
+
+
+class UsuarioManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('tipo', Usuario.Tipo.COORDENADOR)
+        return super().create_superuser(username, email, password, **extra_fields)
 
 
 class Usuario(AbstractUser):
@@ -30,6 +36,10 @@ class Usuario(AbstractUser):
         'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='aprovados'
     )
     aprovado_em = models.DateTimeField(null=True, blank=True)
+
+    objects = UsuarioManager()
+
+    REQUIRED_FIELDS = ['matricula']
 
     @property
     def is_coordenador(self):

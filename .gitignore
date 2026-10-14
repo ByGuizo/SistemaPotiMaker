@@ -14,3 +14,5 @@ staticfiles/
 cache/
 # Cópias do banco feitas por "manage.py backup_banco" (têm os hashes de senha)
 backups/
+db.sqlite3-wal
+db.sqlite3-shm

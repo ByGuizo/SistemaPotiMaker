@@ -170,14 +170,15 @@ def perfil_membro(request, pk):
 @login_required
 def editar_perfil(request):
     """Cada membro edita o próprio perfil — sem pk, sempre request.user."""
+    usuario = Usuario.objects.get(pk=request.user.pk)
     if request.method == 'POST':
-        form = PerfilForm(request.POST, request.FILES, instance=request.user)
+        form = PerfilForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             form.save()
             messages.success(request, 'Perfil atualizado com sucesso.')
             return redirect('usuarios:perfil')
     else:
-        form = PerfilForm(instance=request.user)
+        form = PerfilForm(instance=usuario)
     contexto = {'form': form, 'titulo': 'Editar Perfil', 'voltar_url': reverse_lazy('usuarios:perfil')}
     return render(request, 'usuarios/perfil_form.html', contexto)
 

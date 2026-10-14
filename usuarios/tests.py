@@ -118,7 +118,7 @@ class EditarHorariosTests(TestCase):
             return original(*args, **kwargs)
 
         with patch.object(HorarioEscala.objects, 'get_or_create', side_effect=falha_na_decima):
-            with self.assertRaises(RuntimeError):
+            with self.assertRaises(RuntimeError), self.assertLogs('django.request', 'ERROR'):
                 self.client.post(self.URL, {'celula_0_M1': [self.membro.pk]})
         self.assertEqual(self._membros_da_celula(), {self.coord.pk})
 
@@ -412,3 +412,87 @@ class LimiteCadastroTests(TestCase):
         self.assertIn('name="website"', html)
         self.assertIn('left:-10000px', html)
         self.assertIn('tabindex="-1"', html)
+
+
+class LattesTests(TestCase):
+    def setUp(self):
+        self.usuario = _criar('teste_lattes')
+
+    def _form(self, url):
+        return PerfilForm({'first_name': 'Teste', 'lattes': url}, {}, instance=self.usuario)
+
+    def test_endereco_do_lattes_e_aceito(self):
+        for url in ['http://lattes.cnpq.br/1234567890123456', 'https://wwws.lattes.cnpq.br/cv/123']:
+            with self.subTest(url=url):
+                self.assertTrue(self._form(url).is_valid())
+
+    def test_outro_dominio_e_recusado(self):
+        for url in [
+            'https://site-falso.com/?lattes.cnpq.br',
+            'https://lattes.cnpq.br.site-falso.com/123',
+            'https://site-falso.com/lattes.cnpq.br/123',
+            'ftp://lattes.cnpq.br/123',
+            'javascript:alert(1)//lattes.cnpq.br',
+        ]:
+            with self.subTest(url=url):
+                self.assertFalse(self._form(url).is_valid())
+
+
+class EditarPerfilTests(TestCase):
+    def test_formulario_com_erro_nao_altera_o_usuario_logado(self):
+        usuario = _criar('teste_perfil')
+        self.client.force_login(usuario)
+        resposta = self.client.post('/usuarios/perfil/editar/', {
+            'first_name': 'Nome Que Nao Foi Salvo', 'lattes': 'https://site-falso.com/',
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.wsgi_request.user.first_name, usuario.first_name)
+        usuario.refresh_from_db()
+        self.assertNotEqual(usuario.first_name, 'Nome Que Nao Foi Salvo')
+
+
+class CriacaoDeUsuarioTests(TestCase):
+    def test_createsuperuser_cria_coordenador_com_matricula(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        with patch.dict('os.environ', {'DJANGO_SUPERUSER_PASSWORD': 'Senha-Forte-2026!'}):
+            call_command(
+                'createsuperuser', interactive=False, username='primeiro_coord',
+                matricula='MAT-001', stdout=StringIO(),
+            )
+        usuario = Usuario.objects.get(username='primeiro_coord')
+        self.assertTrue(usuario.is_coordenador)
+        self.assertTrue(usuario.is_superuser)
+        self.assertEqual(usuario.matricula, 'MAT-001')
+
+    def test_create_user_continua_criando_membro(self):
+        self.assertFalse(_criar('membro_comum').is_coordenador)
+
+    def test_admin_pede_matricula_ao_adicionar_usuario(self):
+        admin = Usuario.objects.create_superuser('admin_teste', password='x', matricula='MAT-ADM')
+        self.client.force_login(admin)
+        resposta = self.client.get('/admin/usuarios/usuario/add/')
+        self.assertContains(resposta, 'name="matricula"')
+
+
+class CabecalhosDeSegurancaTests(TestCase):
+    def test_paginas_tem_content_security_policy_sem_script_inline(self):
+        resposta = self.client.get('/usuarios/login/')
+        politica = resposta['Content-Security-Policy']
+        script_src = next(p for p in politica.split(';') if p.strip().startswith('script-src'))
+        self.assertIn("'self'", script_src)
+        self.assertNotIn('unsafe-inline', script_src)
+        self.assertIn("frame-ancestors 'none'", politica)
+
+    def test_nenhum_template_usa_handler_inline(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        templates = [p for p in Path(settings.BASE_DIR).glob('**/templates/**/*.html') if 'venv' not in p.parts]
+        self.assertTrue(templates)
+        for caminho in templates:
+            with self.subTest(template=str(caminho)):
+                self.assertNotRegex(caminho.read_text(encoding='utf-8'), r'\son[a-z]+="')

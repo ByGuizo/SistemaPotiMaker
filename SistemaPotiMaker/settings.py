@@ -15,6 +15,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.csp import CSP
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -79,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.csp.ContentSecurityPolicyMiddleware',
     'usuarios.middleware.LoginObrigatorioMiddleware',
     # Troca a resposta pela tela de bloqueio quando o login está bloqueado (tem que ser o último)
     'axes.middleware.AxesMiddleware',
@@ -118,6 +120,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'transaction_mode': 'IMMEDIATE',
+            'timeout': 20,
+            'init_command': 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;',
+        },
     }
 }
 
@@ -184,6 +191,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'usuarios:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:dashboard'
+
+SECURE_CSP = {
+    'default-src': [CSP.SELF],
+    'script-src': [CSP.SELF],
+    'style-src': [CSP.SELF, CSP.UNSAFE_INLINE, 'https://cdnjs.cloudflare.com', 'https://fonts.googleapis.com'],
+    'font-src': [CSP.SELF, 'https://cdnjs.cloudflare.com', 'https://fonts.gstatic.com'],
+    'img-src': [CSP.SELF, 'data:'],
+    'connect-src': [CSP.SELF],
+    'object-src': [CSP.NONE],
+    'base-uri': [CSP.SELF],
+    'form-action': [CSP.SELF],
+    'frame-ancestors': [CSP.NONE],
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simples': {'format': '{asctime} {levelname} {name}: {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'simples'},
+    },
+    'root': {'handlers': ['console'], 'level': 'WARNING'},
+    'loggers': {
+        'django': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+        'axes': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+    },
+}
 
 
 # Proteção contra força bruta no login (django-axes) — ver usuarios/seguranca.py

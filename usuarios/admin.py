@@ -12,6 +12,12 @@ class UsuarioAdmin(UserAdmin):
         }),
         ('Perfil', {'fields': ('foto', 'biografia', 'lattes')}),
     )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'first_name', 'matricula', 'tipo', 'password1', 'password2'),
+        }),
+    )
     readonly_fields = ('aprovado_em',)
     list_display = ('username', 'first_name', 'matricula', 'tipo', 'status_cadastro', 'is_active')
     list_filter = UserAdmin.list_filter + ('tipo', 'status_cadastro')

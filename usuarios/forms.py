@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
@@ -132,9 +134,15 @@ class PerfilForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm):
 
     def clean_lattes(self):
         url = (self.cleaned_data.get('lattes') or '').strip()
-        if url and 'lattes.cnpq.br' not in url.lower():
+        if not url:
+            return url
+        endereco = urlsplit(url)
+        dominio = (endereco.hostname or '').lower()
+        if endereco.scheme not in ('http', 'https') or not (
+            dominio == 'lattes.cnpq.br' or dominio.endswith('.lattes.cnpq.br')
+        ):
             raise forms.ValidationError(
-                'Informe um endereço do Lattes (deve conter lattes.cnpq.br).'
+                'Informe um endereço do Lattes (ex.: http://lattes.cnpq.br/1234567890123456).'
             )
         return url
 

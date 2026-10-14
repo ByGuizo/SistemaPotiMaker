@@ -20,7 +20,7 @@
                 </a>
                 {% if request.user.is_coordenador %}
                 <form method="post" action="{% url 'inventario:excluir_item' item.pk %}" class="shrink-0"
-                      onsubmit="return confirm('Excluir este item?');">
+                      data-confirmar="Excluir este item?">
                     {% csrf_token %}
                     <button type="submit" class="btn-pop alvo-toque bg-red-400 border-2 border-black px-4">
                         <i class="fa-solid fa-trash"></i>
@@ -64,7 +64,7 @@
                         </a>
                         {% endif %}
                         {% if request.user.is_authenticated and request.user.is_coordenador %}
-                        <form method="post" action="{% url 'inventario:excluir_item' item.pk %}" class="inline" onsubmit="return confirm('Excluir este item?');">
+                        <form method="post" action="{% url 'inventario:excluir_item' item.pk %}" class="inline" data-confirmar="Excluir este item?">
                             {% csrf_token %}
                             <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1">
                                 <i class="fa-solid fa-trash"></i>

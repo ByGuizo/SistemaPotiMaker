@@ -37,7 +37,7 @@
                 <a href="{% url 'usuarios:editar_membro' membro.pk %}" class="btn-pop alvo-toque bg-yellow-300 border-2 border-black px-3 py-1">
                     <i class="fa-solid fa-pen"></i>
                 </a>
-                <form method="post" action="{% url 'usuarios:excluir_membro' membro.pk %}" onsubmit="return confirm('Excluir este membro?');">
+                <form method="post" action="{% url 'usuarios:excluir_membro' membro.pk %}" data-confirmar="Excluir este membro?">
                     {% csrf_token %}
                     <button type="submit" class="btn-pop alvo-toque bg-red-400 border-2 border-black px-3 py-1">
                         <i class="fa-solid fa-trash"></i>

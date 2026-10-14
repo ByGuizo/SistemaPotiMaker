@@ -36,7 +36,7 @@
         <div class="flex justify-end gap-1 border-t-2 border-black pt-2">
             <a href="{% url 'projetos:editar_projeto' projeto.pk %}" class="btn-pop alvo-toque bg-yellow-300 border-2 border-black px-3 py-1"><i class="fa-solid fa-pen"></i></a>
             {% if request.user.is_coordenador %}
-            <form method="post" action="{% url 'projetos:excluir_projeto' projeto.pk %}" onsubmit="return confirm('Excluir este projeto e todas as suas atividades?');">
+            <form method="post" action="{% url 'projetos:excluir_projeto' projeto.pk %}" data-confirmar="Excluir este projeto e todas as suas atividades?">
                 {% csrf_token %}
                 <button type="submit" class="btn-pop alvo-toque bg-red-400 border-2 border-black px-3 py-1"><i class="fa-solid fa-trash"></i></button>
             </form>

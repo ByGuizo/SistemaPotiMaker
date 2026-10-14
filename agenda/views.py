@@ -76,7 +76,7 @@ def painel_dia(request, ano, mes, dia):
     # A URL aceita qualquer inteiro: 30/02 ou mês 99 não existem como data.
     try:
         data = datetime.date(ano, mes, dia)
-    except ValueError:
+    except (ValueError, OverflowError):
         raise Http404('Data inválida.')
 
     eventos = Evento.objects.filter(data=data)

@@ -135,8 +135,9 @@ sudo chmod 600 db.sqlite3
 sudo chmod 700 backups cache
 ```
 
-O SQLite cria arquivos temporários ao lado do `db.sqlite3`, então o usuário
-`potimaker` precisa poder **escrever na pasta** `/srv/potimaker/app`.
+O banco usa o modo WAL do SQLite (melhor para vários workers do gunicorn) e cria
+os arquivos `db.sqlite3-wal` e `db.sqlite3-shm` ao lado do `db.sqlite3`. Por
+isso o usuário `potimaker` precisa poder **escrever na pasta** `/srv/potimaker/app`.
 
 ---
 
@@ -254,15 +255,10 @@ sozinhos em `/usuarios/cadastro/` e ficam pendentes até um coordenador aprovar
 sudo potimaker-manage createsuperuser
 ```
 
-O `createsuperuser` cria um usuário com acesso ao `/admin/`, mas com o papel de
-**membro** no sistema e sem matrícula. Para torná-lo coordenador (troque
-`NOME` pelo usuário criado e `MATRICULA` pela matrícula real):
-
-```bash
-sudo potimaker-manage shell -c "from usuarios.models import Usuario; u = Usuario.objects.get(username='NOME'); u.tipo = Usuario.Tipo.COORDENADOR; u.matricula = 'MATRICULA'; u.first_name = 'Nome Completo'; u.save(); print(u, u.get_tipo_display())"
-```
-
-A partir daí, entre no sistema com esse usuário. Os próximos coordenadores podem
+O comando pede usuário, matrícula e senha, e cria o usuário já como
+**coordenador**, com acesso ao `/admin/`. A senha passa pelas mesmas regras do
+cadastro. A partir daí, entre no sistema com esse usuário e preencha o nome
+completo em "Meu perfil". Os próximos coordenadores podem
 ser promovidos pela própria interface (Membros → editar → Tipo: Coordenador).
 O sistema não deixa rebaixar, desativar ou excluir o **último** coordenador
 ativo.
@@ -313,9 +309,14 @@ Os arquivos contêm dados pessoais e hashes de senha: trate-os como sigilosos.
 sudo systemctl stop potimaker
 cd /srv/potimaker/app
 sudo -u potimaker cp db.sqlite3 db.sqlite3.antes-da-restauracao
+sudo -u potimaker rm -f db.sqlite3-wal db.sqlite3-shm
 sudo -u potimaker cp backups/db_AAAA-MM-DD_HH-MM-SS.sqlite3 db.sqlite3
 sudo systemctl start potimaker
 ```
+
+Apagar o `db.sqlite3-wal` e o `db.sqlite3-shm` antes de copiar o backup é
+obrigatório: se sobrar um `-wal` antigo, o SQLite tenta aplicá-lo sobre o banco
+restaurado.
 
 ---
 
@@ -360,7 +361,7 @@ sudo potimaker-manage check --deploy
 
 | Situação | Comando |
 |---|---|
-| Ver logs | `journalctl -u potimaker -f` |
+| Ver logs (acessos, avisos e erros 500 com o traceback) | `journalctl -u potimaker -f` |
 | Usuário bloqueado por errar a senha 5 vezes (libera sozinho em 15 min) | `sudo potimaker-manage axes_reset_username <usuario>` |
 | Liberar todos os bloqueios | `sudo potimaker-manage axes_reset` |
 | Listar tentativas de login | `sudo potimaker-manage axes_list_attempts` ou `/admin/` → Axes |
