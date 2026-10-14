@@ -5,15 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=13">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-    {# Tailwind compilado (tailwind.config.js). Fica depois do custom.css, onde o CDN injetava. #}
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    {# Sincrono e antes do <body>: aplica o tema salvo sem flash branco #}
-    <script src="{% static 'js/tema.js' %}?v=1"></script>
+    <script src="{% static 'js/tema.js' %}?v=2"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="potimaker-bg min-h-screen text-black flex flex-col">
@@ -27,7 +25,6 @@
                 <span class="bg-yellow-300 font-black px-2 lg:px-3 py-1 border-2 border-black whitespace-nowrap text-sm lg:text-base">POTIMAKER</span>
             </a>
 
-            {# Menu completo: so no desktop. No celular vira gaveta + barra inferior. #}
             <nav class="hidden lg:flex items-center gap-2 shrink-0">
                 <a href="{% url 'core:dashboard' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
                     <i class="fa-solid fa-gauge-high"></i> <span class="hidden xl:inline">DASHBOARD</span>
@@ -72,7 +69,6 @@
                     </button>
                 </form>
 
-                {# Hamburguer: abre a gaveta no celular #}
                 <button type="button" id="btn-menu"
                         class="alvo-toque lg:hidden nav-link px-3 py-2 font-bold border-2 border-black bg-white"
                         aria-expanded="false" aria-controls="gaveta" aria-label="Abrir menu">
@@ -88,7 +84,6 @@
     </header>
 
     {% if request.user.is_authenticated %}
-    {# ---------- Gaveta lateral (celular) ---------- #}
     <div id="gaveta-fundo" class="gaveta-fundo lg:hidden" hidden></div>
     <aside id="gaveta" class="gaveta lg:hidden" hidden aria-label="Menu de navegação">
         <div class="flex items-center justify-between p-4 border-b-4 border-black bg-purple-500 text-white">
@@ -169,7 +164,6 @@
     </footer>
 
     {% if request.user.is_authenticated %}
-    {# ---------- Barra inferior estilo app (so no celular) ---------- #}
     <nav class="barra-inferior lg:hidden" aria-label="Navegação principal">
         <a href="{% url 'core:dashboard' %}" class="item-barra {% if request.resolver_match.app_name == 'core' %}ativo{% endif %}">
             <i class="fa-solid fa-gauge-high"></i><span>Início</span>
@@ -189,7 +183,7 @@
     </nav>
     {% endif %}
 
-    <script src="{% static 'js/mobile.js' %}?v=1" defer></script>
+    <script src="{% static 'js/mobile.js' %}?v=2" defer></script>
     <script src="{% static 'js/confirmacao.js' %}?v=1" defer></script>
     {% block scripts %}{% endblock %}
 </body>

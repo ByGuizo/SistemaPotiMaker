@@ -6,9 +6,6 @@ from core.forms import CampoMembrosWidget, EstiloPotiMakerMixin, SubstituiArquiv
 
 from .models import Atividade, Projeto
 
-# Lista branca: extensão aceita -> content_types que os navegadores costumam
-# mandar para ela. "application/octet-stream" (tipo genérico) só vale para os
-# formatos que o navegador normalmente não reconhece (STL, ZIP, ODT).
 TIPOS_DOCUMENTO = {
     '.pdf': {'application/pdf'},
     '.png': {'image/png'},
@@ -25,15 +22,11 @@ TIPOS_DOCUMENTO = {
     },
 }
 
-# Tipos que o navegador executa ao abrir: nunca aceitos, mesmo com extensão "inocente"
 TIPOS_PROIBIDOS = {
     'text/html', 'application/xhtml+xml', 'image/svg+xml',
     'text/javascript', 'application/javascript', 'application/x-javascript',
 }
 
-# Primeiros bytes ("assinatura") de cada formato. Extensão e content_type vêm do
-# nome do arquivo, então "pagina.html" renomeado para "pagina.pdf" passaria por
-# eles; o conteúdo, não. DOCX/XLSX/PPTX/ODT são arquivos ZIP por dentro.
 ASSINATURA_ZIP = (b'PK\x03\x04', b'PK\x05\x06')
 ASSINATURAS_DOCUMENTO = {
     '.pdf': (b'%PDF-',),
@@ -45,7 +38,6 @@ ASSINATURAS_DOCUMENTO = {
     '.pptx': ASSINATURA_ZIP,
     '.odt': ASSINATURA_ZIP,
     '.zip': ASSINATURA_ZIP,
-    # STL binário não tem assinatura fixa; só se barra conteúdo com cara de HTML/SVG
     '.stl': None,
 }
 
@@ -89,15 +81,12 @@ class AtividadeForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Só membros aprovados podem ser responsáveis por uma atividade
         self.fields['membros'].queryset = self.fields['membros'].queryset.filter(
             is_active=True
         ).order_by('first_name', 'username')
 
     def clean_documento_tecnico(self):
         documento = self.cleaned_data.get('documento_tecnico')
-        # Mesmo padrão do PerfilForm.clean_foto: só valida arquivo novo. Sem troca,
-        # vem o FieldFile já salvo, que não tem content_type.
         if documento and hasattr(documento, 'content_type'):
             if documento.size > self.TAMANHO_MAX_MB * 1024 * 1024:
                 raise forms.ValidationError(
@@ -119,11 +108,10 @@ class AtividadeForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm
 
     @staticmethod
     def _conteudo_confere(documento, extensao):
-        """Confere se os primeiros bytes do arquivo batem com a extensão."""
         documento.seek(0)
         inicio = documento.read(512)
         documento.seek(0)
         if inicio.lstrip(b'\xef\xbb\xbf \t\r\n').startswith(b'<'):
-            return False  # HTML, SVG ou XML disfarçado
+            return False
         assinaturas = ASSINATURAS_DOCUMENTO[extensao]
         return assinaturas is None or inicio.startswith(assinaturas)

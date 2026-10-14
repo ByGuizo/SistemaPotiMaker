@@ -1,9 +1,6 @@
 from django.contrib.auth.views import redirect_to_login
 from django.conf import settings
 
-# media/ NÃO entra aqui: fotos e documentos só para quem está logado
-# (ver core.views.servir_media). STATIC_URL vem sem a barra inicial no
-# settings ('static/'), e request.path sempre começa com '/'.
 CAMINHOS_PUBLICOS = (
     '/usuarios/login/',
     '/usuarios/cadastro/',

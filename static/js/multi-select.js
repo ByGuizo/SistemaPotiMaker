@@ -1,24 +1,6 @@
-/*
- * Campo de membros PotiMaker — substitui o <select multiple> nativo.
- *
- * Interação: o campo é sempre um input de texto. Você digita, ele completa o
- * restante do nome inline (texto selecionado, como a barra de endereço do
- * navegador); Enter ou Tab confirma e vira um chip; o campo limpa sozinho para
- * o próximo. Não é preciso clicar em lista nem segurar Ctrl.
- *
- * Uso: <div class="multi-select" data-nome="celula_0_M1" data-placeholder="...">
- *          <script type="application/json" class="multi-select-dados">
- *              [{"id": "1", "texto": "Ana Pimentel", "selecionado": true}]
- *          </script>
- *      </div>
- *
- * Envia <input type="hidden" name="{data-nome}"> por selecionado — mesmo formato
- * do select multiple, então as views não mudam.
- */
 (function () {
     'use strict';
 
-    // Ignora acentos na busca: "josue" encontra "Josue"
     function normalizar(texto) {
         return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
     }
@@ -48,7 +30,6 @@
             this.raiz.innerHTML = '';
             this.raiz.classList.add('ms-raiz');
 
-            // Caixa que agrupa os chips + o input de digitação
             this.caixa = document.createElement('div');
             this.caixa.className = 'ms-caixa';
             this.raiz.appendChild(this.caixa);
@@ -68,7 +49,6 @@
             this.entrada.setAttribute('aria-autocomplete', 'both');
             this.caixa.appendChild(this.entrada);
 
-            // Lista de sugestões (flutuante)
             this.painel = document.createElement('div');
             this.painel.className = 'ms-painel';
             this.painel.hidden = true;
@@ -85,7 +65,6 @@
         }
 
         ligarEventos() {
-            // Clicar em qualquer lugar da caixa foca o input
             this.caixa.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.ms-chip-remover')) return;
                 if (e.target !== this.entrada) {
@@ -98,7 +77,6 @@
             this.entrada.addEventListener('keydown', (e) => this.aoTeclar(e));
             this.entrada.addEventListener('focus', () => this.abrir());
             this.entrada.addEventListener('blur', () => {
-                // Espera o clique na sugestão acontecer antes de fechar
                 setTimeout(() => {
                     if (!this.raiz.contains(document.activeElement)) this.fechar();
                 }, 120);
@@ -111,11 +89,6 @@
             window.addEventListener('resize', this.reposicionar);
         }
 
-        /*
-         * Autocomplete inline: completa o restante do nome e deixa o trecho
-         * completado selecionado, para que continuar digitando o sobrescreva.
-         * Só completa ao inserir texto (não ao apagar), senão trava o Backspace.
-         */
         aoDigitar(evento) {
             const apagando = evento.inputType && evento.inputType.startsWith('delete');
             const digitado = this.entrada.value;
@@ -131,8 +104,6 @@
 
             const alvo = sugestao.texto;
             if (normalizar(alvo).startsWith(normalizar(digitado)) && alvo.length > digitado.length) {
-                // Usa o nome canônico inteiro (e não o que foi digitado) para que
-                // "jos" vire "Josué Costa", com maiúsculas e acentos corretos.
                 this.entrada.value = alvo;
                 this.entrada.setSelectionRange(digitado.length, alvo.length);
             }
@@ -159,18 +130,16 @@
                 return;
             }
 
-            // Enter/Tab confirmam a sugestão em destaque
             if (e.key === 'Enter' || e.key === 'Tab') {
                 if (this.entrada.value.trim() && sugestoes.length) {
                     e.preventDefault();
                     this.adicionar(sugestoes[this.indiceAtivo] || sugestoes[0]);
                 } else if (e.key === 'Enter') {
-                    e.preventDefault(); // nunca submete o form sem querer
+                    e.preventDefault();
                 }
                 return;
             }
 
-            // Backspace com campo vazio remove o último chip
             if (e.key === 'Backspace' && !this.entrada.value) {
                 const ids = [...this.selecionados];
                 if (ids.length) {
@@ -185,7 +154,6 @@
             this.entrada.setSelectionRange(opcao.texto.length, opcao.texto.length);
         }
 
-        // Candidatos: ainda não escolhidos, ordenados por "começa com" antes de "contém"
         sugestoes() {
             const termo = normalizar(this.entrada.value.trim());
             const disponiveis = this.opcoes.filter((o) => !this.selecionados.has(String(o.id)));
@@ -241,11 +209,6 @@
             this.entrada.setAttribute('aria-expanded', 'false');
         }
 
-        /*
-         * position:fixed porque a tabela da escala vive num overflow-x-auto que
-         * recortaria um painel absoluto. Coordenadas recalculadas a cada abertura
-         * e durante scroll/resize.
-         */
         posicionarPainel() {
             const caixa = this.caixa.getBoundingClientRect();
             const altura = this.painel.offsetHeight || 220;
@@ -348,7 +311,6 @@
                     this.indiceAtivo = indice;
                     this.renderizarPainel();
                 });
-                // mousedown: dispara antes do blur do input
                 item.addEventListener('mousedown', (e) => {
                     e.preventDefault();
                     this.adicionar(opcao);
@@ -358,7 +320,6 @@
             });
         }
 
-        // Grifa o trecho que casa com o que foi digitado
         destacar(texto, termo) {
             const frag = document.createDocumentFragment();
             const pos = termo ? normalizar(texto).indexOf(normalizar(termo)) : -1;

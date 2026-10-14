@@ -29,14 +29,12 @@ class PotiMakerLogoutView(LogoutView):
 
 
 def cadastro(request):
-    """Auto-cadastro público — cria o usuário pendente de aprovação do coordenador."""
     if request.user.is_authenticated:
         return redirect('core:dashboard')
 
     mensagem_sucesso = 'Cadastro enviado! Aguarde a aprovação de um coordenador para acessar o sistema.'
     if request.method == 'POST':
         if request.POST.get(CadastroForm.CAMPO_ARMADILHA):
-            # Robô: responde como se tivesse dado certo, para ele não perceber, e não cria nada
             messages.success(request, mensagem_sucesso)
             return redirect('usuarios:login')
 
@@ -79,7 +77,6 @@ def lista_membros(request):
 
 
 def _destino_seguro(request):
-    """Só aceita redirecionamento para uma URL interna (evita open redirect)."""
     proximo = request.POST.get('proximo')
     if proximo and url_has_allowed_host_and_scheme(
         proximo, allowed_hosts={request.get_host()}, require_https=request.is_secure()
@@ -109,8 +106,6 @@ def negar_cadastro(request, pk):
 
 @coordenador_required
 def editar_membro(request, pk):
-    # Pendente não é editado aqui: o único caminho é aprovar (Usuario.aprovar) ou negar.
-    # Sem o filtro, marcar "Ativo" nesta tela liberava o login sem aprovação.
     membro = get_object_or_404(Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.APROVADO)
     if request.method == 'POST':
         form = MembroForm(request.POST, instance=membro, editor=request.user)
@@ -146,7 +141,6 @@ def _contexto_perfil(membro, request):
         'membro': membro,
         'projetos': Projeto.objects.filter(atividades__membros=membro).distinct(),
         'registros': membro.registros_presenca.all()[:10],
-        # Controla os botões de editar/reportar sem repetir a comparação no template
         'proprio_perfil': membro.pk == request.user.pk,
     }
 
@@ -158,7 +152,6 @@ def perfil(request):
 
 @login_required
 def perfil_membro(request, pk):
-    """Perfil público de outro membro. Pendentes não são visíveis."""
     membro = get_object_or_404(
         Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.APROVADO
     )
@@ -169,7 +162,6 @@ def perfil_membro(request, pk):
 
 @login_required
 def editar_perfil(request):
-    """Cada membro edita o próprio perfil — sem pk, sempre request.user."""
     usuario = Usuario.objects.get(pk=request.user.pk)
     if request.method == 'POST':
         form = PerfilForm(request.POST, request.FILES, instance=usuario)
@@ -184,19 +176,10 @@ def editar_perfil(request):
 
 
 def _membros_escalaveis():
-    """Quem pode entrar na escala: membros aprovados e ativos."""
     return Usuario.objects.filter(is_active=True, status_cadastro=Usuario.StatusCadastro.APROVADO)
 
 
 def _ids_permitidos(valores, permitidos):
-    """
-    Converte os valores enviados em IDs, descartando o que não serve.
-
-    O POST pode ser montado à mão: "abc" ou um número gigante estourariam
-    ValueError no membros.set() e um ID inexistente violaria a chave
-    estrangeira (erro 500 nos dois casos); um ID de pendente entraria na
-    escala. Aqui só passa inteiro que esteja em `permitidos`.
-    """
     ids = set()
     for valor in valores:
         try:
@@ -212,8 +195,6 @@ def _ids_permitidos(valores, permitidos):
 def editar_horarios(request):
     if request.method == 'POST':
         permitidos = set(_membros_escalaveis().values_list('pk', flat=True))
-        # Tudo ou nada: se uma célula falhar no meio, as anteriores não ficam
-        # gravadas pela metade — a escala continua como estava.
         with transaction.atomic():
             for dia_valor, _dia_label in HorarioEscala.DiaSemana.choices:
                 for slot_valor, _slot_label in HorarioEscala.Slot.choices:

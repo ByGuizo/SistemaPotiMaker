@@ -38,12 +38,6 @@
 <form method="post" id="form-escala" class="anim-fade-up">
     {% csrf_token %}
 
-    {% comment %}
-    Celular: um bloco por dia. As duas versões usam o MESMO name
-    (celula_<dia>_<slot>); para o POST não enviar valores duplicados,
-    static/js/escala-mobile.js remove do DOM a versão que não está visível
-    antes do submit.
-    {% endcomment %}
     <div id="escala-mobile" class="lg:hidden space-y-4">
         {% for dia in grade_dias %}
         <div class="card-pop border-2 border-black bg-white overflow-hidden">
@@ -80,7 +74,6 @@
         {% endfor %}
     </div>
 
-    {# ---------- Desktop: grade completa ---------- #}
     <div id="escala-desktop" class="hidden lg:block card-pop border-2 border-black bg-white">
         <div class="overflow-x-auto overflow-y-visible">
             <table class="w-full min-w-[980px]">
@@ -141,6 +134,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/multi-select.js' %}?v=4"></script>
-<script src="{% static 'js/escala-mobile.js' %}?v=1"></script>
+<script src="{% static 'js/multi-select.js' %}?v=5"></script>
+<script src="{% static 'js/escala-mobile.js' %}?v=2"></script>
 {% endblock %}

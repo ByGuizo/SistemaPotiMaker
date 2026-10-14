@@ -27,7 +27,6 @@ class ServirMediaTests(TestCase):
         (raiz / 'projetos' / 'docs').mkdir(parents=True, exist_ok=True)
         (raiz / 'perfis' / 'foto.png').write_bytes(b'\x89PNG teste')
         (raiz / 'projetos' / 'docs' / 'manual.pdf').write_bytes(b'%PDF teste')
-        # Arquivo "secreto" fora da media, vizinho da pasta temporária
         cls.segredo = raiz.parent / f'{raiz.name}-segredo.txt'
         cls.segredo.write_text('nao deveria vazar')
 
@@ -79,11 +78,6 @@ class ServirMediaTests(TestCase):
 
 
 class ConfiguracaoProducaoTests(SimpleTestCase):
-    """
-    O settings.py só é lido quando o Django inicia, então cada cenário roda o
-    manage.py num processo separado, com as variáveis de ambiente do cenário.
-    """
-
     CHAVE_LONGA = 'chave-de-teste-' + 'x' * 60
 
     def _rodar(self, *args, **variaveis):
@@ -91,8 +85,6 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
             k: v for k, v in os.environ.items()
             if not k.startswith('DJANGO_')
         }
-        # Sem isso, no Windows o filho escreve em cp1252 e os acentos da
-        # mensagem de erro quebram a leitura da saída
         ambiente['PYTHONIOENCODING'] = 'utf-8'
         ambiente.update(variaveis)
         return subprocess.run(
@@ -102,7 +94,6 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         )
 
     def test_producao_sem_secret_key_nao_inicia(self):
-        # Vazia (e não ausente) para o .env local não conseguir preenchê-la
         resultado = self._rodar('check', DJANGO_DEBUG='False', DJANGO_SECRET_KEY='')
         self.assertNotEqual(resultado.returncode, 0)
         self.assertIn('DJANGO_SECRET_KEY', resultado.stderr)
@@ -120,11 +111,6 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
 
 
 class BackupBancoTests(TransactionTestCase):
-    """
-    TransactionTestCase: os dados do teste são gravados de verdade (no banco de
-    teste), como aconteceria com o sistema rodando. O banco real não é tocado.
-    """
-
     def setUp(self):
         self.pasta = Path(tempfile.mkdtemp(prefix='potimaker-backup-'))
         self.addCleanup(shutil.rmtree, self.pasta, ignore_errors=True)
@@ -162,8 +148,8 @@ class BackupBancoTests(TransactionTestCase):
         nomes = [b.name for b in self._backups()]
         self.assertEqual(len(nomes), 3)
         self.assertEqual(nomes[:2], ['db_2020-01-04_03-00-00.sqlite3', 'db_2020-01-05_03-00-00.sqlite3'])
-        self.assertFalse(nomes[2].startswith('db_2020'))  # o novo foi mantido
-        self.assertTrue(outro_arquivo.exists())  # só mexe nos arquivos db_*.sqlite3
+        self.assertFalse(nomes[2].startswith('db_2020'))
+        self.assertTrue(outro_arquivo.exists())
 
     def test_manter_zero_e_recusado_sem_apagar_nada(self):
         antigo = self.pasta / 'db_2020-01-01_03-00-00.sqlite3'

@@ -106,7 +106,6 @@ class EditarHorariosTests(TestCase):
         self.assertEqual(self._membros_da_celula(), {self.membro.pk})
 
     def test_falha_no_meio_nao_grava_pela_metade(self):
-        """transaction.atomic(): se a 10ª célula falha, as 9 primeiras voltam atrás."""
         self.client.post(self.URL, {'celula_0_M1': [self.coord.pk]})
         original = HorarioEscala.objects.get_or_create
         chamadas = {'n': 0}
@@ -135,7 +134,6 @@ class GestaoMembrosTests(TestCase):
 
     @staticmethod
     def _dados(usuario, **mudancas):
-        """POST do formulário de membro. is_active=None = caixa "Ativo" desmarcada."""
         dados = {
             'first_name': usuario.first_name, 'username': usuario.username,
             'matricula': usuario.matricula, 'tipo': usuario.tipo, 'is_active': 'on',
@@ -147,7 +145,6 @@ class GestaoMembrosTests(TestCase):
     def _editar(self, usuario, **mudancas):
         return self.client.post(f'/usuarios/membros/{usuario.pk}/editar/', self._dados(usuario, **mudancas))
 
-    # --- Cadastro pendente fica fora desta tela ---
     def test_pendente_nao_abre_na_edicao(self):
         pendente = _criar('pendente_gestao', pendente=True)
         self.assertEqual(self.client.get(f'/usuarios/membros/{pendente.pk}/editar/').status_code, 404)
@@ -164,7 +161,6 @@ class GestaoMembrosTests(TestCase):
         self.assertEqual(self.client.post(f'/usuarios/membros/{pendente.pk}/excluir/').status_code, 404)
         self.assertTrue(Usuario.objects.filter(pk=pendente.pk).exists())
 
-    # --- Senha definida pelo coordenador ---
     def test_senha_fraca_e_recusada(self):
         for senha in ['123', '12345678', 'password']:
             with self.subTest(senha=senha):
@@ -184,7 +180,6 @@ class GestaoMembrosTests(TestCase):
         self.membro.refresh_from_db()
         self.assertTrue(self.membro.check_password('Senha-Forte-2026!'))
 
-    # --- Último coordenador ativo ---
     def test_ultimo_coordenador_nao_se_rebaixa(self):
         resposta = self._editar(self.coord, tipo=Usuario.Tipo.MEMBRO)
         self.assertEqual(resposta.status_code, 200)
@@ -193,7 +188,6 @@ class GestaoMembrosTests(TestCase):
         self.assertTrue(self.coord.is_coordenador)
 
     def test_formulario_nao_desativa_nem_rebaixa_o_ultimo_coordenador(self):
-        """Direto no MembroForm, sem editor: vale para qualquer uso futuro do formulário."""
         dados = self._dados(self.coord, tipo=Usuario.Tipo.MEMBRO, is_active=None)
         form = MembroForm(dados, instance=self.coord)
         self.assertFalse(form.is_valid())
@@ -205,7 +199,7 @@ class GestaoMembrosTests(TestCase):
         self.assertFalse(self.membro.e_ultimo_coordenador_ativo())
         _criar('coord_inativo', tipo=Usuario.Tipo.COORDENADOR, ativo=False)
         _criar('coord_pendente', tipo=Usuario.Tipo.COORDENADOR, pendente=True)
-        self.assertTrue(self.coord.e_ultimo_coordenador_ativo())  # inativo e pendente não contam
+        self.assertTrue(self.coord.e_ultimo_coordenador_ativo())
         _criar('coord_segundo', tipo=Usuario.Tipo.COORDENADOR)
         self.assertFalse(self.coord.e_ultimo_coordenador_ativo())
 
@@ -224,9 +218,8 @@ class GestaoMembrosTests(TestCase):
         self.client.post(f'/usuarios/membros/{terceiro.pk}/excluir/')
         self.assertFalse(Usuario.objects.filter(pk=terceiro.pk).exists())
 
-    # --- Própria conta ---
     def test_nao_desativa_a_propria_conta(self):
-        _criar('coord_reserva', tipo=Usuario.Tipo.COORDENADOR)  # não é o último
+        _criar('coord_reserva', tipo=Usuario.Tipo.COORDENADOR)
         resposta = self._editar(self.coord, is_active=None)
         self.assertEqual(resposta.status_code, 200)
         self.assertIn('própria conta', str(resposta.context['form'].errors['is_active']))
@@ -296,7 +289,6 @@ class BloqueioLoginTests(TestCase):
             self.assertEqual(self._login('senha-errada', **kwargs).status_code, 200)
 
     def _bloquear(self, **kwargs):
-        """4 erros normais; o 5º já recebe a tela de bloqueio."""
         self._errar(4, **kwargs)
         self.assertEqual(self._login('senha-errada', **kwargs).status_code, 429)
 
@@ -317,10 +309,8 @@ class BloqueioLoginTests(TestCase):
 
     def test_bloqueio_vale_para_a_combinacao_usuario_e_ip(self):
         self._bloquear(ip='10.0.0.1')
-        # Mesmo usuário, outro IP: entra
         self.assertEqual(self._login(self.SENHA, ip='10.0.0.2').status_code, 302)
         self.client.logout()
-        # Outro usuário, mesmo IP: entra
         _criar('joao_login')
         self.assertEqual(self._login(self.SENHA, username='joao_login', ip='10.0.0.1').status_code, 302)
 
@@ -404,7 +394,7 @@ class LimiteCadastroTests(TestCase):
 
     def test_honeypot_preenchido_nao_cria_usuario(self):
         resposta = self._cadastrar(1, website='http://spam.example')
-        self.assertEqual(resposta.status_code, 302)  # parece sucesso para o robô
+        self.assertEqual(resposta.status_code, 302)
         self.assertFalse(Usuario.objects.filter(username='pessoa_1').exists())
 
     def test_honeypot_esta_escondido_na_pagina(self):

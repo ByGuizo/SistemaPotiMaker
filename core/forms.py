@@ -12,18 +12,10 @@ INPUT_CLASS = (
 
 
 class CampoMembrosWidget(forms.SelectMultiple):
-    """
-    Renderiza um ManyToMany no formato que o static/js/multi-select.js espera:
-    digita-se o nome, ele completa inline e Enter/Tab adiciona como chip.
-
-    Mantém um <noscript> com o <select multiple> nativo, então o formulário
-    continua utilizável sem JS — e o POST tem o mesmo formato nos dois casos.
-    """
-
     placeholder = 'Digite um nome...'
 
     class Media:
-        js = ('js/multi-select.js?v=4',)
+        js = ('js/multi-select.js?v=5',)
 
     def render(self, name, value, attrs=None, renderer=None):
         selecionados = {str(v) for v in (value or []) if v is not None}
@@ -39,10 +31,8 @@ class CampoMembrosWidget(forms.SelectMultiple):
                     'selecionado': str(escolha['value']) in selecionados,
                 })
 
-        # O <select> do noscript reaproveita o render nativo do SelectMultiple
         nativo = super().render(name, value, attrs, renderer)
 
-        # Escapa < > & para que um nome contendo "</script>" não feche a tag
         dados = (
             json.dumps(opcoes, ensure_ascii=False)
             .replace('<', '\\u003c')
@@ -62,16 +52,6 @@ class CampoMembrosWidget(forms.SelectMultiple):
 
 
 class SubstituiArquivoMixin:
-    """
-    Apaga do disco o arquivo antigo quando um campo de arquivo (FileField ou
-    ImageField) é trocado ou limpo no formulário.
-
-    O Django não faz isso sozinho: sem este mixin, cada troca de foto deixa
-    o arquivo anterior esquecido em media/. A remoção só acontece depois que o
-    registro com o arquivo novo foi gravado no banco (transaction.on_commit) —
-    se algo falhar antes, o arquivo antigo continua lá e ainda é o válido.
-    """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._arquivos_antigos = {
@@ -95,7 +75,6 @@ class EstiloPotiMakerMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            # O campo de membros tem estilo próprio (.ms-*), não usa INPUT_CLASS
             if isinstance(field.widget, CampoMembrosWidget):
                 continue
             existente = field.widget.attrs.get('class', '')

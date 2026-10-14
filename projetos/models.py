@@ -2,9 +2,6 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Case, IntegerField, Value, When
 
-# A prioridade é gravada como texto ('ALTA', 'MEDIA', 'BAIXA'), e ordenar texto
-# é alfabético: '-prioridade' dava Média → Baixa → Alta. Este Case converte
-# cada valor num número só na hora de ordenar, sem mudar o que está no banco.
 ORDEM_PRIORIDADE = Case(
     When(prioridade='ALTA', then=Value(0)),
     When(prioridade='MEDIA', then=Value(1)),

@@ -11,8 +11,6 @@ from .models import Atividade, Projeto
 def kanban(request):
     projeto_id = request.GET.get('projeto', '')
 
-    # O filtro vem do dropdown, mas a URL é editável: um valor não numérico
-    # estouraria ValueError no filter(). Lixo = sem filtro.
     filtro_projeto = None
     if projeto_id:
         try:

@@ -13,18 +13,6 @@ def status_laboratorio():
 
 
 def escala_atual():
-    """
-    Quem deve estar no laboratório agora.
-
-    Retorna um dict com o `horario` e um flag `em_andamento`:
-    - `em_andamento=True`  → a hora atual está dentro do slot.
-    - `em_andamento=False` → estamos num intervalo (entre slots, antes do
-      primeiro ou depois do último) e o `horario` é o **próximo** do dia.
-
-    Os slots não cobrem o dia inteiro (há 2h de intervalos entre eles, mais o
-    almoço), então olhar só "dentro do slot" deixava o painel vazio em ~14% do
-    expediente mesmo com a escala preenchida. Fora de dia útil retorna None.
-    """
     agora = timezone.localtime()
     dia_semana = agora.weekday()
     hora = agora.time()
@@ -37,24 +25,20 @@ def escala_atual():
         .filter(dia_semana=dia_semana)
         .prefetch_related('membros')
     )
-    # Ordena pelo horário real do slot, não pela string ('M1' < 'T1' por acaso)
     horarios.sort(key=lambda h: h.hora_inicio)
 
     for horario in horarios:
         if horario.hora_inicio <= hora <= horario.hora_fim:
             return {'horario': horario, 'em_andamento': True}
 
-    # Fora de qualquer slot: aponta o próximo do dia, se ainda houver
     for horario in horarios:
         if hora < horario.hora_inicio:
             return {'horario': horario, 'em_andamento': False}
 
-    # Expediente do dia encerrado
     return None
 
 
 def grade_horarios():
-    """Matriz para o desktop: linhas = slots, colunas = dias."""
     horarios = HorarioEscala.objects.prefetch_related('membros').all()
     mapa = {(h.dia_semana, h.slot): h for h in horarios}
 
@@ -68,14 +52,6 @@ def grade_horarios():
 
 
 def grade_por_dia():
-    """
-    Mesma escala agrupada por dia, para o celular.
-
-    A grade 5x6 do desktop obrigaria a rolar ~980px na horizontal no telefone;
-    empilhada por dia cada célula ocupa a largura toda e fica utilizável.
-    O nome do campo (`celula_<dia>_<slot>`) é o mesmo nas duas versões, então
-    `editar_horarios` continua lendo do mesmo jeito.
-    """
     horarios = HorarioEscala.objects.prefetch_related('membros').all()
     mapa = {(h.dia_semana, h.slot): h for h in horarios}
 

@@ -18,7 +18,6 @@ INICIOS = {'.pdf': b'%PDF-1.7\n', '.stl': b'solid peca\n', '.html': b'<html>', '
 
 
 def _arquivo(nome, tipo, tamanho=100, inicio=None):
-    """Arquivo de teste com os primeiros bytes do formato que a extensão diz ser."""
     if inicio is None:
         inicio = INICIOS[Path(nome).suffix.lower()]
     return SimpleUploadedFile(nome, inicio + b'x' * (tamanho - len(inicio)), content_type=tipo)
@@ -61,7 +60,6 @@ class DocumentoTecnicoTests(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_html_renomeado_para_pdf_e_recusado(self):
-        """O navegador manda application/pdf pela extensão; quem barra é o conteúdo."""
         html = b'<!DOCTYPE html><script>alert(1)</script>'
         form = self._form(_arquivo('pagina.pdf', 'application/pdf', inicio=html))
         self.assertFalse(form.is_valid())

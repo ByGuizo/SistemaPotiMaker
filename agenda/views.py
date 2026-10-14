@@ -40,8 +40,6 @@ def _grade_mes(ano, mes):
 def calendario(request):
     hoje = timezone.localdate()
 
-    # Parâmetros vêm da URL (links de navegação, mas também digitáveis):
-    # qualquer lixo cai no mês atual em vez de estourar ValueError/OverflowError.
     try:
         ano = int(request.GET.get('ano', hoje.year))
         mes = int(request.GET.get('mes', hoje.month))
@@ -53,7 +51,6 @@ def calendario(request):
     elif mes > 12:
         mes, ano = 1, ano + 1
 
-    # date() aceita no máximo MAXYEAR; fora disso o calendário nem faz sentido
     if not (datetime.MINYEAR <= ano <= datetime.MAXYEAR):
         ano, mes = hoje.year, hoje.month
 
@@ -73,7 +70,6 @@ def calendario(request):
 
 
 def painel_dia(request, ano, mes, dia):
-    # A URL aceita qualquer inteiro: 30/02 ou mês 99 não existem como data.
     try:
         data = datetime.date(ano, mes, dia)
     except (ValueError, OverflowError):

@@ -1,6 +1,5 @@
 {% load potimaker_tags %}
 <div id="tabela-itens">
-    {# ---------- Celular: cada item vira um cartao ---------- #}
     <div class="lg:hidden space-y-3">
         {% for item in itens %}
         <div class="card-pop stagger-item border-2 border-black bg-white p-3" style="--i:{{ forloop.counter0 }}">
@@ -38,7 +37,6 @@
         {% endfor %}
     </div>
 
-    {# ---------- Desktop: tabela ---------- #}
     <div class="hidden lg:block card-pop border-2 border-black bg-white overflow-x-auto">
         <table class="w-full">
             <thead>

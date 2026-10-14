@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar conta — FabLab PotiMaker</title>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=13">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
-    <script src="{% static 'js/tema.js' %}?v=1"></script>
+    <script src="{% static 'js/tema.js' %}?v=2"></script>
 </head>
 <body class="login-bg min-h-screen flex items-center justify-center relative overflow-hidden p-4">
 
@@ -48,7 +48,6 @@
 
                 {% for field in form %}
                 {% if field.name == 'website' %}
-                {# Honeypot: fora da tela para pessoas; robôs preenchem. Ver CadastroForm.CAMPO_ARMADILHA #}
                 <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}

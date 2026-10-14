@@ -9,7 +9,6 @@ from usuarios.models import HorarioEscala, RegistroPresenca
 
 Usuario = get_user_model()
 
-# Contas preservadas por padrão. Todo o resto é apagado.
 USUARIOS_PADRAO = ['admin', 'byguizo']
 
 
@@ -65,8 +64,6 @@ class Command(BaseCommand):
             return
 
         with transaction.atomic():
-            # Atividade antes de Projeto: a FK é CASCADE, mas explicitar deixa a
-            # ordem clara e não depende do comportamento do banco.
             Item.objects.all().delete()
             Atividade.objects.all().delete()
             Projeto.objects.all().delete()

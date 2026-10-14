@@ -51,7 +51,6 @@ class Usuario(AbstractUser):
 
     @property
     def inicial(self):
-        """Letra usada no avatar quando o membro não tem foto."""
         nome = self.first_name.strip() or self.username
         return nome[:1].upper()
 
@@ -63,8 +62,6 @@ class Usuario(AbstractUser):
         self.save(update_fields=['status_cadastro', 'is_active', 'aprovado_por', 'aprovado_em'])
 
     def e_ultimo_coordenador_ativo(self):
-        """True se, sem este usuário, não sobra nenhum coordenador ativo para
-        administrar o sistema (aprovar cadastros, editar membros e a escala)."""
         if not (self.is_coordenador and self.is_active):
             return False
         return not Usuario.objects.filter(

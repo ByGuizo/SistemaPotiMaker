@@ -1,16 +1,7 @@
-/*
- * Configuração do Tailwind (CLI standalone 3.4.x). Substitui o antigo
- * static/js/tailwind-config.js, que configurava o Tailwind do CDN no navegador.
- *
- * Regerar o CSS depois de mexer em templates ou classes:
- *   .\tailwindcss.exe -i tailwind-entrada.css -o static/css/tailwind.css --minify
- * e incrementar o ?v= do tailwind.css.
- */
 module.exports = {
     content: [
         './templates/**/*.html',
         './*/templates/**/*.html',
-        // Classes montadas em Python: cores dos badges (CORES_*) e INPUT_CLASS
         './core/templatetags/*.py',
         './core/forms.py',
         './static/js/*.js',

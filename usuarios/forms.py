@@ -16,8 +16,6 @@ class LoginForm(EstiloPotiMakerMixin, AuthenticationForm):
     }
 
     def get_invalid_login_error(self):
-        """Usuário pendente tem is_active=False, então o backend o rejeita antes de
-        confirm_login_allowed(). Aqui damos o motivo real em vez de 'senha incorreta'."""
         usuario = Usuario.objects.filter(username__iexact=self.cleaned_data.get('username', '')).first()
         if usuario and usuario.is_pendente and usuario.check_password(self.cleaned_data.get('password', '')):
             return forms.ValidationError(self.error_messages['pendente'], code='pendente')
@@ -25,12 +23,6 @@ class LoginForm(EstiloPotiMakerMixin, AuthenticationForm):
 
 
 class UsernameUnicoMixin:
-    """
-    Recusa um nome de usuário que já exista com outra combinação de maiúsculas
-    ("Guizo" x "guizo"). O unique do banco diferencia maiúsculas; sem isto,
-    daria para criar duas contas que parecem a mesma pessoa.
-    """
-
     def clean_username(self):
         username = self.cleaned_data['username']
         existe = Usuario.objects.filter(username__iexact=username).exclude(pk=self.instance.pk)
@@ -42,10 +34,6 @@ class UsernameUnicoMixin:
 
 
 class CadastroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
-    """Auto-cadastro público — o usuário nasce pendente de aprovação."""
-
-    # Honeypot ("pote de mel"): campo escondido por CSS que pessoas não veem e
-    # robôs de spam preenchem. Se vier preenchido, a view descarta o cadastro.
     CAMPO_ARMADILHA = 'website'
 
     password = forms.CharField(label='Senha', widget=forms.PasswordInput)
@@ -88,14 +76,6 @@ class CadastroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
 
 
 class PerfilForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm):
-    """
-    Edição do próprio perfil pelo membro.
-
-    Só campos de apresentação — nome, foto, biografia e Lattes. Matrícula,
-    tipo e is_active ficam de fora de propósito: são dados administrativos que
-    só coordenador altera (via MembroForm).
-    """
-
     TAMANHO_MAX_MB = 3
 
     class Meta:
@@ -120,8 +100,6 @@ class PerfilForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm):
 
     def clean_foto(self):
         foto = self.cleaned_data.get('foto')
-        # Só valida quando um arquivo novo foi enviado; se o campo nao mudou,
-        # vem o ImageFieldFile ja salvo, que nao tem content_type.
         if foto and hasattr(foto, 'content_type'):
             if foto.size > self.TAMANHO_MAX_MB * 1024 * 1024:
                 raise forms.ValidationError(
@@ -148,8 +126,6 @@ class PerfilForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm):
 
 
 class MembroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
-    """Edição de membro já existente pelo coordenador (não cria novos)."""
-
     password = forms.CharField(
         label='Senha', widget=forms.PasswordInput, required=False,
         help_text='Deixe em branco para manter a senha atual.'
@@ -165,21 +141,17 @@ class MembroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
         }
 
     def __init__(self, *args, editor=None, **kwargs):
-        # editor = o coordenador logado que está fazendo a edição
         super().__init__(*args, **kwargs)
         self.editor = editor
 
     def clean_password(self):
         senha = self.cleaned_data.get('password')
         if senha:
-            # Mesmas regras do auto-cadastro (tamanho mínimo, senhas comuns...)
             validate_password(senha, user=self.instance)
         return senha
 
     def clean(self):
         dados = super().clean()
-        # self.instance ainda tem os valores do banco: construct_instance só
-        # roda depois do clean()
         membro = self.instance
         desativando = 'is_active' in dados and not dados['is_active']
         rebaixando = dados.get('tipo') and dados['tipo'] != Usuario.Tipo.COORDENADOR

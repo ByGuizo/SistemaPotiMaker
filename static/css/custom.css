@@ -12,7 +12,6 @@ h1, h2, h3, .font-display {
     font-family: 'Space Grotesk', sans-serif;
 }
 
-/* Cartão com sombra "brutal" que reage ao hover/tap levantando e empurrando a sombra */
 .card-pop {
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
     box-shadow: 4px 4px 0 0 #000;
@@ -26,7 +25,6 @@ h1, h2, h3, .font-display {
     box-shadow: 2px 2px 0 0 #000;
 }
 
-/* Botões com feedback de clique elástico */
 .btn-pop {
     transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
     box-shadow: 3px 3px 0 0 #000;
@@ -55,7 +53,6 @@ h1, h2, h3, .font-display {
     transition: transform 0.3s ease;
 }
 
-/* Entrada em cascata: aplicar .stagger-item em filhos de um container, JS atribui --i */
 .stagger-item {
     opacity: 0;
     animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -77,12 +74,10 @@ h1, h2, h3, .font-display {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Contador que "conta para cima" via JS (classe usada para marcar alvo) */
 .counter-value {
     font-variant-numeric: tabular-nums;
 }
 
-/* Badge com leve pulso para chamar atenção (ex: HOJE, ALTA prioridade) */
 .pulse-soft {
     animation: pulseSoft 2s ease-in-out infinite;
 }
@@ -91,20 +86,15 @@ h1, h2, h3, .font-display {
     50% { box-shadow: 0 0 0 6px rgba(224, 31, 184, 0); }
 }
 
-/* Login/cadastro: os blobs decorativos ficam propositalmente fora da viewport.
-   O overflow-hidden do <body> nao basta — quem rola e o <html>, entao a pagina
-   deslizava ~140px para o lado. Prender nos dois elementos resolve. */
 html:has(> body.login-bg),
 body.login-bg {
     overflow-x: hidden;
     max-width: 100%;
 }
-/* Fallback para navegadores sem :has() — os blobs sao a causa do vazamento */
 .login-blob {
     max-width: 100vw;
 }
 
-/* Fundo animado da tela de login */
 .login-bg {
     background: linear-gradient(120deg, #5B21B6, #E01FB8, #7C3AED, #3DE0D0);
     background-size: 300% 300%;
@@ -118,7 +108,6 @@ body.login-bg {
     animation: blobMove 14s ease-in-out infinite;
 }
 
-/* Formas geométricas decorativas atrás da faixa roxa do header */
 .hero-shapes {
     background-image:
         radial-gradient(circle at 88% 20%, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 60px, transparent 61px),
@@ -126,20 +115,14 @@ body.login-bg {
         radial-gradient(circle at 78% 90%, rgba(61,224,208,0.15) 0, rgba(61,224,208,0.15) 40px, transparent 41px);
 }
 
-/* Skeleton/spinner leve para indicar carregamento HTMX */
 .htmx-indicator { opacity: 0; transition: opacity 0.2s ease; }
 .htmx-request .htmx-indicator { opacity: 1; }
 .htmx-request.htmx-indicator { opacity: 1; }
 
-/* ==========================================================================
-   Campo de membros (static/js/multi-select.js) — substitui o <select multiple>
-   nativo. Você digita, o nome completa inline e vira um chip no Enter/Tab.
-   ========================================================================== */
 .ms-raiz {
     position: relative;
 }
 
-/* Caixa que agrupa os chips já escolhidos e o input de digitação */
 .ms-caixa {
     display: flex;
     flex-wrap: wrap;
@@ -165,7 +148,6 @@ body.login-bg {
     display: contents;
 }
 
-/* Input de digitação: cresce para ocupar o resto da linha */
 .ms-entrada {
     flex: 1 1 90px;
     min-width: 90px;
@@ -182,13 +164,11 @@ body.login-bg {
     color: #9CA3AF;
     font-weight: 600;
 }
-/* Trecho completado automaticamente */
 .ms-entrada::selection {
     background: #D4F84A;
     color: #000;
 }
 
-/* --- Chip de membro escolhido --- */
 .ms-chip {
     display: inline-flex;
     align-items: center;
@@ -221,7 +201,6 @@ body.login-bg {
     font-weight: 900;
     letter-spacing: 0;
 }
-/* Espaço próprio para o nome — impede que cole no avatar ou no "x" */
 .ms-chip-nome {
     padding: 0 2px;
     overflow: hidden;
@@ -249,9 +228,6 @@ body.login-bg {
     color: #F87171;
 }
 
-/* --- Painel de sugestões ---
-   position:fixed para não ser recortado pelo overflow-x-auto da tabela;
-   coordenadas calculadas em posicionarPainel(). */
 .ms-painel {
     position: fixed;
     z-index: 50;
@@ -342,8 +318,6 @@ body.login-bg {
     text-align: center;
 }
 
-/* Dentro de célula de tabela (escala de horários) o campo é compacto: são 30
-   deles lado a lado, então cede espaço. Em formulário mantém o tamanho base. */
 td .ms-caixa {
     min-height: 44px;
     padding: 5px;
@@ -359,18 +333,8 @@ td .ms-chip {
     font-size: 11px;
 }
 
-/* Sem JS o widget não é montado (.ms-raiz só vem do JS): esconde a div vazia
-   e deixa o <select multiple> do <noscript> assumir. */
 .multi-select:not(.ms-raiz) { display: none; }
 
-
-/* ==========================================================================
-   MOBILE — gaveta lateral, barra inferior e alvos de toque
-   O sistema e usado majoritariamente no celular. Tudo aqui vale abaixo de
-   1024px (lg); acima disso o menu horizontal do header assume.
-   ========================================================================== */
-
-/* Alvo de toque minimo recomendado (Apple 44px / Google 48px) */
 .alvo-toque {
     min-height: 44px;
     min-width: 44px;
@@ -379,7 +343,6 @@ td .ms-chip {
     justify-content: center;
 }
 
-/* --- Gaveta lateral --- */
 .gaveta-fundo {
     position: fixed;
     inset: 0;
@@ -425,7 +388,6 @@ td .ms-chip {
     box-shadow: 1px 1px 0 0 #000;
 }
 
-/* --- Barra inferior estilo app --- */
 .barra-inferior {
     position: fixed;
     bottom: 0;
@@ -435,7 +397,6 @@ td .ms-chip {
     display: flex;
     background: #fff;
     border-top: 4px solid #000;
-    /* respeita a area do gesto do iPhone */
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
 .item-barra {
@@ -463,49 +424,38 @@ td .ms-chip {
 }
 .item-barra:active { background: #FEF08A; color: #000; }
 
-/* A barra inferior e fixa e cobriria o fim da pagina. O espaco reservado
-   precisa bater com a altura real dela (min-height 58 + borda 4 = 62px),
-   mais a area de gesto do iPhone. Com 58px o rodape ficava 4px encoberto. */
 @media (max-width: 1023px) {
     body {
         padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px));
     }
 }
 
-/* --- Ajustes gerais de celular --- */
 @media (max-width: 1023px) {
-    /* Sombras brutalistas menores: em tela pequena elas roubam espaco */
     .card-pop { box-shadow: 3px 3px 0 0 #000; }
     .card-pop:hover { box-shadow: 4px 4px 0 0 #000; transform: none; }
     .card-pop:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 #000; }
 
-    /* Sem hover em touch: o :hover fica "grudado" apos o toque */
     .nav-link:hover { transform: none; box-shadow: none; }
     .btn-pop:hover { transform: none; box-shadow: 3px 3px 0 0 #000; }
 
-    /* Botoes e links do conteudo com area de toque confortavel */
     main a.btn-pop,
     main button:not(.ms-chip-remover),
     main input[type="submit"] {
         min-height: 44px;
     }
 
-    /* Campos de formulario: 16px evita o zoom automatico do iOS ao focar */
     input:not([type="checkbox"]):not([type="radio"]),
     select,
     textarea {
         font-size: 16px !important;
     }
 
-    /* Rolagem horizontal suave em tabelas que nao cabem */
     .rolagem-toque {
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x proximate;
     }
 }
 
-/* O "x" do chip tem 17px: no dedo isso e impossivel de acertar. Em touch,
-   aumenta o botao e o proprio chip para caber a area de toque. */
 @media (max-width: 1023px) {
     .ms-chip { font-size: 13px; padding: 5px 5px 5px 6px; }
     .ms-chip-avatar { width: 22px; height: 22px; font-size: 10px; }
@@ -515,27 +465,16 @@ td .ms-chip {
         font-size: 15px;
     }
     .ms-entrada { min-height: 34px; }
-    /* Sugestoes maiores para tocar sem erro */
     .ms-item { padding: 12px 10px; font-size: 14px; }
     .ms-item-avatar { width: 26px; height: 26px; font-size: 11px; }
     .ms-lista { max-height: 240px; }
 }
 
-/* Telas bem estreitas (iPhone SE e afins) */
 @media (max-width: 380px) {
     .item-barra { font-size: 9px; }
     .item-barra i { font-size: 15px; }
 }
 
-/* ==========================================================================
-   MODO ESCURO
-   Os templates usam utilitários Tailwind fixos (bg-white, text-black...). Em vez
-   de reescrever ~120 arquivos, o tema inverte essas classes aqui, sob o atributo
-   [data-tema="escuro"] no <html> — alternado por static/js/tema.js.
-   As cores de marca (fúcsia, amarelo, esmeralda, roxo) continuam iguais: são a
-   identidade do sistema e contrastam bem no escuro. O que muda são as
-   superfícies (branco -> grafite), os textos e as bordas/sombras.
-   ========================================================================== */
 :root {
     --ptm-superficie: #1E1B26;
     --ptm-superficie-2: #2A2533;
@@ -549,7 +488,6 @@ td .ms-chip {
     --ptm-texto: #F3F0F7;
 }
 
-/* Fundo pontilhado da página */
 [data-tema="escuro"] .potimaker-bg {
     background-color: #14111A;
     background-image: radial-gradient(#FFFFFF14 1.5px, transparent 1.5px);
@@ -559,12 +497,10 @@ td .ms-chip {
     color: var(--ptm-texto);
 }
 
-/* --- Superfícies: tudo que era branco vira grafite --- */
 [data-tema="escuro"] .bg-white {
     background-color: var(--ptm-superficie) !important;
     color: var(--ptm-texto);
 }
-/* Tints pálidos (linhas de tabela, faixas de destaque) */
 [data-tema="escuro"] .bg-gray-50,
 [data-tema="escuro"] .bg-gray-100,
 [data-tema="escuro"] .bg-emerald-50,
@@ -574,7 +510,6 @@ td .ms-chip {
     background-color: var(--ptm-superficie-2) !important;
     color: var(--ptm-texto);
 }
-/* Avatares em tons pastel: escurece mantendo o matiz */
 [data-tema="escuro"] .bg-purple-100 { background-color: #3B2E5A !important; color: #E9DDFF !important; }
 [data-tema="escuro"] .bg-fuchsia-100 { background-color: #4A1D45 !important; color: #FFD9F5 !important; }
 [data-tema="escuro"] .bg-yellow-100 { background-color: #4A3F14 !important; color: #FFF3C4 !important; }
@@ -582,17 +517,14 @@ td .ms-chip {
 [data-tema="escuro"] .bg-gray-200,
 [data-tema="escuro"] .bg-gray-300 { background-color: #3A3444 !important; color: var(--ptm-texto) !important; }
 
-/* bg-black precisa clarear um pouco para não sumir no fundo */
 [data-tema="escuro"] .bg-black { background-color: #0A0810 !important; }
 
-/* --- Texto --- */
 [data-tema="escuro"] .text-black { color: var(--ptm-texto) !important; }
 [data-tema="escuro"] .text-gray-500,
 [data-tema="escuro"] .text-gray-600 { color: #A79FB5 !important; }
 [data-tema="escuro"] .text-gray-400 { color: #8F86A0 !important; }
 [data-tema="escuro"] .text-gray-300 { color: #C9C2D6 !important; }
 
-/* --- Bordas e sombras brutalistas --- */
 [data-tema="escuro"] .border-black { border-color: var(--ptm-borda) !important; }
 [data-tema="escuro"] .divide-black > * { border-color: var(--ptm-borda) !important; }
 [data-tema="escuro"] .card-pop { box-shadow: 4px 4px 0 0 var(--ptm-borda); }
@@ -603,14 +535,12 @@ td .ms-chip {
 [data-tema="escuro"] .btn-pop:active { box-shadow: 1px 1px 0 0 var(--ptm-borda); }
 [data-tema="escuro"] .nav-link:hover { box-shadow: 3px 4px 0 0 var(--ptm-borda); }
 
-/* Cores de marca em fundo escuro precisam de texto escuro para contrastar */
 [data-tema="escuro"] .bg-yellow-300,
 [data-tema="escuro"] .bg-emerald-400,
 [data-tema="escuro"] .bg-cyan-400,
 [data-tema="escuro"] .bg-lime-300,
 [data-tema="escuro"] .bg-red-400 { color: #14111A !important; }
 
-/* --- Campos de formulário --- */
 [data-tema="escuro"] input:not([type="checkbox"]):not([type="radio"]),
 [data-tema="escuro"] select,
 [data-tema="escuro"] textarea {
@@ -620,13 +550,11 @@ td .ms-chip {
 }
 [data-tema="escuro"] input::placeholder,
 [data-tema="escuro"] textarea::placeholder { color: #8F86A0; }
-/* Ícones nativos (date/time picker) são pretos por padrão */
 [data-tema="escuro"] input[type="date"]::-webkit-calendar-picker-indicator,
 [data-tema="escuro"] input[type="time"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
 
-/* --- Campo de membros (multi-select) --- */
 [data-tema="escuro"] .ms-caixa { background: var(--ptm-superficie-2); border-color: var(--ptm-borda); }
 [data-tema="escuro"] .ms-entrada { color: var(--ptm-texto); }
 [data-tema="escuro"] .ms-painel { background: var(--ptm-superficie); border-color: var(--ptm-borda); }
@@ -637,7 +565,6 @@ td .ms-chip {
 [data-tema="escuro"] .ms-chip { color: #14111A; }
 [data-tema="escuro"] .ms-sem-resultado { color: #A79FB5; }
 
-/* --- Gaveta e barra inferior no escuro --- */
 [data-tema="escuro"] .gaveta {
     background: #14111A;
     border-left-color: #0A0810;
@@ -658,13 +585,11 @@ td .ms-chip {
 [data-tema="escuro"] .item-barra.ativo { background: #E01FB8; color: #fff; }
 [data-tema="escuro"] .item-barra:active { background: #4A3F14; color: #F3F0F7; }
 
-/* --- Botão de alternar tema --- */
 .btn-tema { cursor: pointer; }
 .btn-tema .icone-claro { display: none; }
 [data-tema="escuro"] .btn-tema .icone-claro { display: inline; }
 [data-tema="escuro"] .btn-tema .icone-escuro { display: none; }
 
-/* Evita o "flash" branco: só anima a troca depois que a página carregou */
 .tema-pronto body,
 .tema-pronto .bg-white,
 .tema-pronto .potimaker-bg {
