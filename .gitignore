@@ -1,18 +1,15 @@
 __pycache__/
 *.pyc
 db.sqlite3
+db.sqlite3-wal
+db.sqlite3-shm
 media/
+backups/
+cache/
+staticfiles/
 .venv/
 venv/
 *.log
 .env
-staticfiles/
-# Executável do Tailwind CLI (baixar do release oficial, ver README)
 /tailwindcss.exe
 /tailwindcss-*
-# Cache em arquivo usado em produção (contador de cadastros por IP)
-cache/
-# Cópias do banco feitas por "manage.py backup_banco" (têm os hashes de senha)
-backups/
-db.sqlite3-wal
-db.sqlite3-shm
