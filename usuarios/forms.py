@@ -85,6 +85,60 @@ class CadastroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
         return usuario
 
 
+class PerfilForm(EstiloPotiMakerMixin, SubstituiArquivoMixin, forms.ModelForm):
+    """
+    Edição do próprio perfil pelo membro.
+
+    Só campos de apresentação — nome, foto, biografia e Lattes. Matrícula,
+    tipo e is_active ficam de fora de propósito: são dados administrativos que
+    só coordenador altera (via MembroForm).
+    """
+
+    TAMANHO_MAX_MB = 3
+
+    class Meta:
+        model = Usuario
+        fields = ['first_name', 'last_name', 'foto', 'biografia', 'lattes']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'foto': 'Foto de perfil',
+            'biografia': 'Biografia',
+            'lattes': 'Currículo Lattes',
+        }
+        help_texts = {
+            'foto': 'JPG, PNG ou WEBP de até 3 MB.',
+            'biografia': 'Conte um pouco sobre você — no máximo 500 caracteres.',
+            'lattes': 'Cole o endereço do seu currículo (ex.: http://lattes.cnpq.br/1234567890123456).',
+        }
+        widgets = {
+            'biografia': forms.Textarea(attrs={'rows': 4, 'maxlength': 500}),
+            'lattes': forms.URLInput(attrs={'placeholder': 'http://lattes.cnpq.br/...'}),
+        }
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get('foto')
+        # Só valida quando um arquivo novo foi enviado; se o campo nao mudou,
+        # vem o ImageFieldFile ja salvo, que nao tem content_type.
+        if foto and hasattr(foto, 'content_type'):
+            if foto.size > self.TAMANHO_MAX_MB * 1024 * 1024:
+                raise forms.ValidationError(
+                    f'A imagem deve ter no máximo {self.TAMANHO_MAX_MB} MB '
+                    f'(a sua tem {foto.size / 1024 / 1024:.1f} MB).'
+                )
+            if foto.content_type not in ('image/jpeg', 'image/png', 'image/webp'):
+                raise forms.ValidationError('Use uma imagem JPG, PNG ou WEBP.')
+        return foto
+
+    def clean_lattes(self):
+        url = (self.cleaned_data.get('lattes') or '').strip()
+        if url and 'lattes.cnpq.br' not in url.lower():
+            raise forms.ValidationError(
+                'Informe um endereço do Lattes (deve conter lattes.cnpq.br).'
+            )
+        return url
+
+
 class MembroForm(EstiloPotiMakerMixin, UsernameUnicoMixin, forms.ModelForm):
     """Edição de membro já existente pelo coordenador (não cria novos)."""
 

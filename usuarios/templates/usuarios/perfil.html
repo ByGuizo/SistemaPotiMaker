@@ -1,66 +1,112 @@
 {% extends "base.html" %}
 {% load potimaker_tags %}
-{% block title %}Meu Perfil{% endblock %}
+{% block title %}{% if proprio_perfil %}Meu Perfil{% else %}{{ membro }}{% endif %}{% endblock %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 anim-fade-up">
     <span class="inline-flex items-center gap-2 bg-purple-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
-        <i class="fa-solid fa-user-astronaut"></i> MEU PERFIL
+        <i class="fa-solid fa-user-astronaut"></i>
+        {% if proprio_perfil %}MEU PERFIL{% else %}PERFIL DO MEMBRO{% endif %}
     </span>
-    {% if request.user.is_coordenador %}
-    <a href="{% url 'usuarios:editar_membro' request.user.pk %}" class="btn-pop inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black">
-        <i class="fa-solid fa-pen"></i> EDITAR DADOS
-    </a>
-    {% endif %}
+    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+        {% if proprio_perfil %}
+        <a href="{% url 'usuarios:editar_perfil' %}" class="btn-pop alvo-toque flex-1 sm:flex-none justify-center inline-flex items-center gap-2 bg-yellow-300 font-black px-4 py-2 border-2 border-black">
+            <i class="fa-solid fa-pen"></i> EDITAR PERFIL
+        </a>
+        {% else %}
+        <a href="{% url 'usuarios:lista_membros' %}" class="btn-pop alvo-toque flex-1 sm:flex-none justify-center inline-flex items-center gap-2 bg-white font-black px-4 py-2 border-2 border-black">
+            <i class="fa-solid fa-arrow-left"></i> MEMBROS
+        </a>
+        {# Reportar ainda nao tem backend: botao desabilitado ate a funcionalidade existir #}
+        <button type="button" disabled
+                title="Em breve: ainda não é possível reportar membros."
+                class="alvo-toque flex-1 sm:flex-none justify-center inline-flex items-center gap-2 bg-red-400 font-black px-4 py-2 border-2 border-black opacity-60 cursor-not-allowed">
+            <i class="fa-solid fa-flag"></i> REPORTAR
+        </button>
+        {% endif %}
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="card-pop border-2 border-black bg-white anim-fade-up">
-        <div class="bg-black text-white px-4 py-3 flex items-center gap-2">
-            <i class="fa-solid fa-id-card"></i> DADOS DO MEMBRO
+    <div class="space-y-6">
+        <div class="card-pop border-2 border-black bg-white anim-fade-up">
+            <div class="bg-black text-white px-4 py-3 flex items-center gap-2">
+                <i class="fa-solid fa-id-card"></i> DADOS DO MEMBRO
+            </div>
+            <div class="p-5 text-center border-b-2 border-black">
+                {% if membro.foto %}
+                <img src="{{ membro.foto.url }}" alt="Foto de {{ membro }}"
+                     class="w-28 h-28 mx-auto mb-3 border-2 border-black object-cover">
+                {% else %}
+                <div class="w-28 h-28 mx-auto mb-3 bg-purple-100 border-2 border-black flex items-center justify-center font-black font-display text-4xl">
+                    {{ membro.inicial }}
+                </div>
+                {% endif %}
+                <p class="font-black font-display text-lg">{{ membro }}</p>
+                <p class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
+                    <i class="fa-solid fa-user"></i> {{ membro.username }}
+                </p>
+                <div class="flex gap-1 justify-center mt-3 flex-wrap">
+                    {% badge membro.tipo "tipo_usuario" membro.get_tipo_display %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black {% if membro.is_active %}bg-emerald-400{% else %}bg-gray-300{% endif %}">
+                        <i class="fa-solid {% if membro.is_active %}fa-circle-check{% else %}fa-circle-xmark{% endif %}"></i>
+                        {% if membro.is_active %}ATIVO{% else %}INATIVO{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="p-4 space-y-3 text-sm">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-hashtag text-purple-500 w-5"></i>
+                    <span class="text-gray-500">Matrícula:</span> <span class="font-bold">{{ membro.matricula }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-regular fa-calendar-plus text-purple-500 w-5"></i>
+                    <span class="text-gray-500">Membro desde:</span> <span class="font-bold">{{ membro.date_joined|date:"d/m/Y" }}</span>
+                </div>
+                {% if membro.lattes %}
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-purple-500 w-5"></i>
+                    <a href="{{ membro.lattes }}" target="_blank" rel="noopener noreferrer"
+                       class="font-bold underline hover:text-fuchsia-500 truncate py-2 inline-flex items-center gap-1">
+                        Currículo Lattes <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </a>
+                </div>
+                {% endif %}
+                {% if proprio_perfil and membro.last_login %}
+                <div class="flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-purple-500 w-5"></i>
+                    <span class="text-gray-500">Último acesso:</span> <span class="font-bold">{{ membro.last_login|date:"d/m/Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
         </div>
-        <div class="p-5 text-center border-b-2 border-black">
-            <div class="w-20 h-20 mx-auto mb-3 bg-purple-100 border-2 border-black flex items-center justify-center font-black font-display text-3xl">
-                {{ membro.first_name|slice:":1"|upper|default:membro.username|slice:":1"|upper }}
+
+        <div class="card-pop border-2 border-black bg-white anim-fade-up" style="animation-delay: 80ms">
+            <div class="bg-cyan-400 px-4 py-3 flex items-center gap-2 font-black">
+                <i class="fa-solid fa-quote-left"></i> BIOGRAFIA
             </div>
-            <p class="font-black font-display text-lg">{{ membro }}</p>
-            <p class="text-xs text-gray-500 flex items-center justify-center gap-1 mt-1">
-                <i class="fa-solid fa-user"></i> {{ membro.username }}
-            </p>
-            <div class="flex gap-1 justify-center mt-3 flex-wrap">
-                {% badge membro.tipo "tipo_usuario" membro.get_tipo_display %}
-                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-black {% if membro.is_active %}bg-emerald-400{% else %}bg-gray-300{% endif %}">
-                    <i class="fa-solid {% if membro.is_active %}fa-circle-check{% else %}fa-circle-xmark{% endif %}"></i>
-                    {% if membro.is_active %}ATIVO{% else %}INATIVO{% endif %}
-                </span>
+            <div class="p-4">
+                {% if membro.biografia %}
+                <p class="text-sm leading-relaxed whitespace-pre-line">{{ membro.biografia }}</p>
+                {% else %}
+                <p class="text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-regular fa-face-meh"></i>
+                    {% if proprio_perfil %}
+                    Você ainda não escreveu sua biografia.
+                    {% else %}
+                    Este membro ainda não escreveu uma biografia.
+                    {% endif %}
+                </p>
+                {% endif %}
             </div>
-        </div>
-        <div class="p-4 space-y-3 text-sm">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-id-badge text-purple-500 w-5"></i>
-                <span class="text-gray-500">Usuário:</span> <span class="font-bold">{{ membro.username }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-hashtag text-purple-500 w-5"></i>
-                <span class="text-gray-500">Matrícula:</span> <span class="font-bold">{{ membro.matricula }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <i class="fa-regular fa-calendar-plus text-purple-500 w-5"></i>
-                <span class="text-gray-500">Membro desde:</span> <span class="font-bold">{{ membro.date_joined|date:"d/m/Y" }}</span>
-            </div>
-            {% if membro.last_login %}
-            <div class="flex items-center gap-2">
-                <i class="fa-regular fa-clock text-purple-500 w-5"></i>
-                <span class="text-gray-500">Último acesso:</span> <span class="font-bold">{{ membro.last_login|date:"d/m/Y H:i" }}</span>
-            </div>
-            {% endif %}
         </div>
     </div>
 
     <div class="lg:col-span-2 space-y-6">
         <div class="card-pop border-2 border-black bg-white anim-fade-up" style="animation-delay: 100ms">
             <div class="bg-fuchsia-500 text-white px-4 py-3 flex items-center gap-2">
-                <i class="fa-solid fa-diagram-project"></i> MEUS PROJETOS
+                <i class="fa-solid fa-diagram-project"></i>
+                {% if proprio_perfil %}MEUS PROJETOS{% else %}PROJETOS{% endif %}
                 <span class="ml-auto bg-black text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full">{{ projetos|length }}</span>
             </div>
             <div class="p-4 space-y-2">
@@ -74,12 +120,18 @@
                 </a>
                 {% empty %}
                 <p class="text-sm text-gray-500 flex items-center gap-2 py-2">
-                    <i class="fa-regular fa-folder-open"></i> Você ainda não está em nenhum projeto.
+                    <i class="fa-regular fa-folder-open"></i>
+                    {% if proprio_perfil %}
+                    Você ainda não está em nenhum projeto.
+                    {% else %}
+                    Este membro ainda não está em nenhum projeto.
+                    {% endif %}
                 </p>
                 {% endfor %}
             </div>
         </div>
 
+        {% if proprio_perfil %}
         <div class="card-pop border-2 border-black bg-white anim-fade-up" style="animation-delay: 200ms">
             <div class="bg-emerald-400 px-4 py-3 flex items-center gap-2 font-black">
                 <i class="fa-solid fa-fingerprint"></i> HISTÓRICO DE ENTRADAS
@@ -100,6 +152,7 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 

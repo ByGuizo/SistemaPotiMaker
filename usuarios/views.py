@@ -11,10 +11,10 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from projetos.models import Projeto
 
 from .decorators import coordenador_required
-from .forms import CadastroForm, LoginForm, MembroForm
+from .forms import CadastroForm, LoginForm, MembroForm, PerfilForm
 from .models import HorarioEscala
 from .seguranca import cadastro_bloqueado, registrar_cadastro
-from .services import grade_horarios
+from .services import grade_horarios, grade_por_dia
 
 Usuario = get_user_model()
 
@@ -141,14 +141,45 @@ def excluir_membro(request, pk):
     return redirect('usuarios:lista_membros')
 
 
+def _contexto_perfil(membro, request):
+    return {
+        'membro': membro,
+        'projetos': Projeto.objects.filter(atividades__membros=membro).distinct(),
+        'registros': membro.registros_presenca.all()[:10],
+        # Controla os botões de editar/reportar sem repetir a comparação no template
+        'proprio_perfil': membro.pk == request.user.pk,
+    }
+
+
 @login_required
 def perfil(request):
-    contexto = {
-        'membro': request.user,
-        'projetos': Projeto.objects.filter(atividades__membros=request.user).distinct(),
-        'registros': request.user.registros_presenca.all()[:10],
-    }
-    return render(request, 'usuarios/perfil.html', contexto)
+    return render(request, 'usuarios/perfil.html', _contexto_perfil(request.user, request))
+
+
+@login_required
+def perfil_membro(request, pk):
+    """Perfil público de outro membro. Pendentes não são visíveis."""
+    membro = get_object_or_404(
+        Usuario, pk=pk, status_cadastro=Usuario.StatusCadastro.APROVADO
+    )
+    if membro.pk == request.user.pk:
+        return redirect('usuarios:perfil')
+    return render(request, 'usuarios/perfil.html', _contexto_perfil(membro, request))
+
+
+@login_required
+def editar_perfil(request):
+    """Cada membro edita o próprio perfil — sem pk, sempre request.user."""
+    if request.method == 'POST':
+        form = PerfilForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso.')
+            return redirect('usuarios:perfil')
+    else:
+        form = PerfilForm(instance=request.user)
+    contexto = {'form': form, 'titulo': 'Editar Perfil', 'voltar_url': reverse_lazy('usuarios:perfil')}
+    return render(request, 'usuarios/perfil_form.html', contexto)
 
 
 def _membros_escalaveis():
@@ -194,6 +225,7 @@ def editar_horarios(request):
 
     contexto = {
         'linhas': grade_horarios(),
+        'grade_dias': grade_por_dia(),
         'dias': HorarioEscala.DiaSemana.choices,
         'membros': _membros_escalaveis().order_by('first_name'),
     }

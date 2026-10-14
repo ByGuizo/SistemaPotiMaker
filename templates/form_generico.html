@@ -8,11 +8,11 @@
     <form method="post" enctype="multipart/form-data" class="p-4">
         {% csrf_token %}
         {% include "partials/_form_generico.html" %}
-        <div class="flex gap-2 justify-end mt-4">
-            <a href="{{ voltar_url }}" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
+        <div class="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end mt-4">
+            <a href="{{ voltar_url }}" class="btn-pop alvo-toque justify-center inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
                 <i class="fa-solid fa-xmark"></i> CANCELAR
             </a>
-            <button type="submit" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-emerald-400">
+            <button type="submit" class="btn-pop alvo-toque justify-center inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-emerald-400">
                 <i class="fa-solid fa-floppy-disk"></i> SALVAR
             </button>
         </div>

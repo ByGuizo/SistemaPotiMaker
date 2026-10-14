@@ -365,6 +365,169 @@ td .ms-chip {
 
 
 /* ==========================================================================
+   MOBILE — gaveta lateral, barra inferior e alvos de toque
+   O sistema e usado majoritariamente no celular. Tudo aqui vale abaixo de
+   1024px (lg); acima disso o menu horizontal do header assume.
+   ========================================================================== */
+
+/* Alvo de toque minimo recomendado (Apple 44px / Google 48px) */
+.alvo-toque {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Gaveta lateral --- */
+.gaveta-fundo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.gaveta-fundo.visivel { opacity: 1; }
+
+.gaveta {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(82vw, 320px);
+    z-index: 50;
+    background: #FCF5E3;
+    border-left: 4px solid #000;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    overscroll-behavior: contain;
+}
+.gaveta.aberta { transform: translateX(0); }
+
+.item-gaveta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 0 #000;
+    font-weight: 800;
+    font-size: 15px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.item-gaveta:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 #000;
+}
+
+/* --- Barra inferior estilo app --- */
+.barra-inferior {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: flex;
+    background: #fff;
+    border-top: 4px solid #000;
+    /* respeita a area do gesto do iPhone */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.item-barra {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 58px;
+    padding: 6px 2px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #6B7280;
+    border-right: 2px solid #000;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.item-barra:last-child { border-right: none; }
+.item-barra i { font-size: 17px; }
+.item-barra.ativo {
+    background: #E01FB8;
+    color: #fff;
+}
+.item-barra:active { background: #FEF08A; color: #000; }
+
+/* A barra inferior e fixa e cobriria o fim da pagina. O espaco reservado
+   precisa bater com a altura real dela (min-height 58 + borda 4 = 62px),
+   mais a area de gesto do iPhone. Com 58px o rodape ficava 4px encoberto. */
+@media (max-width: 1023px) {
+    body {
+        padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* --- Ajustes gerais de celular --- */
+@media (max-width: 1023px) {
+    /* Sombras brutalistas menores: em tela pequena elas roubam espaco */
+    .card-pop { box-shadow: 3px 3px 0 0 #000; }
+    .card-pop:hover { box-shadow: 4px 4px 0 0 #000; transform: none; }
+    .card-pop:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 #000; }
+
+    /* Sem hover em touch: o :hover fica "grudado" apos o toque */
+    .nav-link:hover { transform: none; box-shadow: none; }
+    .btn-pop:hover { transform: none; box-shadow: 3px 3px 0 0 #000; }
+
+    /* Botoes e links do conteudo com area de toque confortavel */
+    main a.btn-pop,
+    main button:not(.ms-chip-remover),
+    main input[type="submit"] {
+        min-height: 44px;
+    }
+
+    /* Campos de formulario: 16px evita o zoom automatico do iOS ao focar */
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* Rolagem horizontal suave em tabelas que nao cabem */
+    .rolagem-toque {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximate;
+    }
+}
+
+/* O "x" do chip tem 17px: no dedo isso e impossivel de acertar. Em touch,
+   aumenta o botao e o proprio chip para caber a area de toque. */
+@media (max-width: 1023px) {
+    .ms-chip { font-size: 13px; padding: 5px 5px 5px 6px; }
+    .ms-chip-avatar { width: 22px; height: 22px; font-size: 10px; }
+    .ms-chip-remover {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+    .ms-entrada { min-height: 34px; }
+    /* Sugestoes maiores para tocar sem erro */
+    .ms-item { padding: 12px 10px; font-size: 14px; }
+    .ms-item-avatar { width: 26px; height: 26px; font-size: 11px; }
+    .ms-lista { max-height: 240px; }
+}
+
+/* Telas bem estreitas (iPhone SE e afins) */
+@media (max-width: 380px) {
+    .item-barra { font-size: 9px; }
+    .item-barra i { font-size: 15px; }
+}
+
+/* ==========================================================================
    MODO ESCURO
    Os templates usam utilitários Tailwind fixos (bg-white, text-black...). Em vez
    de reescrever ~120 arquivos, o tema inverte essas classes aqui, sob o atributo
@@ -473,6 +636,27 @@ td .ms-chip {
 [data-tema="escuro"] .ms-item-tecla { background: var(--ptm-superficie-2); color: var(--ptm-texto); }
 [data-tema="escuro"] .ms-chip { color: #14111A; }
 [data-tema="escuro"] .ms-sem-resultado { color: #A79FB5; }
+
+/* --- Gaveta e barra inferior no escuro --- */
+[data-tema="escuro"] .gaveta {
+    background: #14111A;
+    border-left-color: #0A0810;
+}
+[data-tema="escuro"] .item-gaveta {
+    border-color: #0A0810;
+    box-shadow: 3px 3px 0 0 #0A0810;
+}
+[data-tema="escuro"] .item-gaveta:active { box-shadow: 1px 1px 0 0 #0A0810; }
+[data-tema="escuro"] .barra-inferior {
+    background: #1E1B26;
+    border-top-color: #0A0810;
+}
+[data-tema="escuro"] .item-barra {
+    color: #A79FB5;
+    border-right-color: #0A0810;
+}
+[data-tema="escuro"] .item-barra.ativo { background: #E01FB8; color: #fff; }
+[data-tema="escuro"] .item-barra:active { background: #4A3F14; color: #F3F0F7; }
 
 /* --- Botão de alternar tema --- */
 .btn-tema { cursor: pointer; }

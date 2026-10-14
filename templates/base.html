@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PotiMaker{% endblock %} — FabLab IFRN Canguaretama</title>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=8">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=12">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -19,14 +19,16 @@
 <body class="potimaker-bg min-h-screen text-black flex flex-col">
 
     <header class="bg-white border-b-4 border-black sticky top-0 z-30 anim-slide-down">
-        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 gap-3">
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between px-4 lg:px-6 py-2 lg:py-3 gap-3">
             <a href="{% url 'core:dashboard' %}" class="flex items-center gap-2 group shrink-0">
-                <span class="bg-fuchsia-500 text-white font-black px-3 py-1 border-2 border-black rotate-badge group-hover:animate-wiggle whitespace-nowrap">
+                <span class="bg-fuchsia-500 text-white font-black px-2 lg:px-3 py-1 border-2 border-black rotate-badge group-hover:animate-wiggle whitespace-nowrap text-sm lg:text-base">
                     <i class="fa-solid fa-bolt"></i> FABLAB
                 </span>
-                <span class="bg-yellow-300 font-black px-3 py-1 border-2 border-black whitespace-nowrap">POTIMAKER</span>
+                <span class="bg-yellow-300 font-black px-2 lg:px-3 py-1 border-2 border-black whitespace-nowrap text-sm lg:text-base">POTIMAKER</span>
             </a>
-            <nav class="flex items-center gap-2 shrink-0">
+
+            {# Menu completo: so no desktop. No celular vira gaveta + barra inferior. #}
+            <nav class="hidden lg:flex items-center gap-2 shrink-0">
                 <a href="{% url 'core:dashboard' %}" class="nav-link shrink-0 px-3 py-2 font-bold border-2 border-black {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
                     <i class="fa-solid fa-gauge-high"></i> <span class="hidden xl:inline">DASHBOARD</span>
                 </a>
@@ -43,35 +45,105 @@
                     <i class="fa-solid fa-calendar-days"></i> <span class="hidden xl:inline">AGENDA</span>
                 </a>
             </nav>
+
             <div class="flex items-center gap-2 shrink-0">
-                <button type="button" class="btn-tema nav-link px-3 py-2 font-bold border-2 border-black bg-white"
+                <button type="button" class="btn-tema alvo-toque nav-link px-3 py-2 font-bold border-2 border-black bg-white"
                         aria-pressed="false" title="Ativar modo escuro">
                     <i class="fa-solid fa-moon icone-escuro"></i>
                     <i class="fa-solid fa-sun icone-claro"></i>
                     <span class="sr-only">Alternar modo escuro</span>
                 </button>
                 {% if request.user.is_authenticated %}
-                {# max-w + truncate: nome longo nao empurra o header para uma segunda linha #}
                 <a href="{% url 'usuarios:perfil' %}"
-                   class="nav-link flex items-center gap-2 px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white max-w-[11rem]"
+                   class="nav-link alvo-toque hidden lg:flex items-center gap-2 px-3 py-2 font-bold border-2 border-black bg-purple-500 text-white max-w-[11rem]"
                    title="{{ request.user.get_full_name|default:request.user.username }}">
+                    {% if request.user.foto %}
+                    <img src="{{ request.user.foto.url }}" alt=""
+                         class="w-6 h-6 shrink-0 border border-black object-cover">
+                    {% else %}
                     <i class="fa-solid fa-user-astronaut shrink-0"></i>
-                    <span class="hidden sm:inline truncate">{{ request.user.get_full_name|default:request.user.username|upper }}</span>
+                    {% endif %}
+                    <span class="hidden xl:inline truncate">{{ request.user.get_full_name|default:request.user.username|upper }}</span>
                 </a>
-                <form method="post" action="{% url 'usuarios:logout' %}">
+                <form method="post" action="{% url 'usuarios:logout' %}" class="hidden lg:block">
                     {% csrf_token %}
-                    <button type="submit" class="nav-link px-3 py-2 font-bold border-2 border-black bg-white" title="Sair">
+                    <button type="submit" class="nav-link alvo-toque px-3 py-2 font-bold border-2 border-black bg-white" title="Sair">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden xl:inline">SAIR</span>
                     </button>
                 </form>
+
+                {# Hamburguer: abre a gaveta no celular #}
+                <button type="button" id="btn-menu"
+                        class="alvo-toque lg:hidden nav-link px-3 py-2 font-bold border-2 border-black bg-white"
+                        aria-expanded="false" aria-controls="gaveta" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 {% else %}
-                <a href="{% url 'usuarios:login' %}" class="nav-link px-3 py-2 font-bold border-2 border-black bg-fuchsia-500 text-white whitespace-nowrap">
+                <a href="{% url 'usuarios:login' %}" class="nav-link alvo-toque px-3 py-2 font-bold border-2 border-black bg-fuchsia-500 text-white whitespace-nowrap">
                     <i class="fa-solid fa-right-to-bracket"></i> ENTRAR
                 </a>
                 {% endif %}
             </div>
         </div>
     </header>
+
+    {% if request.user.is_authenticated %}
+    {# ---------- Gaveta lateral (celular) ---------- #}
+    <div id="gaveta-fundo" class="gaveta-fundo lg:hidden" hidden></div>
+    <aside id="gaveta" class="gaveta lg:hidden" hidden aria-label="Menu de navegação">
+        <div class="flex items-center justify-between p-4 border-b-4 border-black bg-purple-500 text-white">
+            <a href="{% url 'usuarios:perfil' %}" class="flex items-center gap-3 min-w-0">
+                {% if request.user.foto %}
+                <img src="{{ request.user.foto.url }}" alt=""
+                     class="w-12 h-12 shrink-0 border-2 border-black object-cover">
+                {% else %}
+                <span class="w-12 h-12 shrink-0 bg-black text-purple-300 border-2 border-black flex items-center justify-center font-black font-display text-xl">
+                    {{ request.user.inicial }}
+                </span>
+                {% endif %}
+                <span class="min-w-0">
+                    <span class="block font-black truncate">{{ request.user.get_full_name|default:request.user.username }}</span>
+                    <span class="block text-xs opacity-90">Ver meu perfil</span>
+                </span>
+            </a>
+            <button type="button" id="btn-fechar-gaveta" class="alvo-toque px-3 py-2 border-2 border-black bg-white text-black font-black" aria-label="Fechar menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="p-3 space-y-2 overflow-y-auto flex-1">
+            <a href="{% url 'core:dashboard' %}" class="item-gaveta {% if request.resolver_match.app_name == 'core' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                <i class="fa-solid fa-gauge-high w-6"></i> DASHBOARD
+            </a>
+            <a href="{% url 'inventario:lista_itens' %}" class="item-gaveta {% if request.resolver_match.app_name == 'inventario' %}bg-yellow-300{% else %}bg-white{% endif %}">
+                <i class="fa-solid fa-boxes-stacked w-6"></i> INVENTÁRIO
+            </a>
+            <a href="{% url 'projetos:kanban' %}" class="item-gaveta {% if request.resolver_match.app_name == 'projetos' %}bg-fuchsia-500 text-white{% else %}bg-white{% endif %}">
+                <i class="fa-solid fa-diagram-project w-6"></i> PROJETOS
+            </a>
+            <a href="{% url 'usuarios:lista_membros' %}" class="item-gaveta {% if request.resolver_match.url_name == 'lista_membros' %}bg-purple-500 text-white{% else %}bg-white{% endif %}">
+                <i class="fa-solid fa-users w-6"></i> MEMBROS
+            </a>
+            <a href="{% url 'agenda:calendario' %}" class="item-gaveta {% if request.resolver_match.app_name == 'agenda' %}bg-emerald-400{% else %}bg-white{% endif %}">
+                <i class="fa-solid fa-calendar-days w-6"></i> AGENDA
+            </a>
+            {% if request.user.is_coordenador %}
+            <a href="{% url 'usuarios:editar_horarios' %}" class="item-gaveta bg-white">
+                <i class="fa-solid fa-user-clock w-6"></i> EDITAR ESCALA
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="p-3 border-t-4 border-black">
+            <form method="post" action="{% url 'usuarios:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="item-gaveta bg-red-400 w-full justify-center">
+                    <i class="fa-solid fa-right-from-bracket"></i> SAIR
+                </button>
+            </form>
+        </div>
+    </aside>
+    {% endif %}
 
     <div class="bg-purple-700 text-white border-b-4 border-black relative overflow-hidden">
         <div class="absolute inset-0 hero-shapes pointer-events-none"></div>
@@ -85,17 +157,39 @@
 
     {% include "partials/_mensagens.html" %}
 
-    <main class="max-w-[1400px] mx-auto px-6 py-6 w-full flex-1">
+    <main class="max-w-[1400px] mx-auto px-4 lg:px-6 py-4 lg:py-6 w-full flex-1">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t-4 border-black bg-white mt-10 shrink-0">
-        <div class="max-w-[1400px] mx-auto px-6 py-3 flex justify-between text-xs font-bold flex-wrap gap-2">
+    <footer class="border-t-4 border-black bg-white mt-6 lg:mt-10 shrink-0">
+        <div class="max-w-[1400px] mx-auto px-4 lg:px-6 py-3 flex justify-between text-xs font-bold flex-wrap gap-2">
             <span><i class="fa-regular fa-copyright"></i> 2026 FABLAB POTIMAKER — IFRN CANGUARETAMA</span>
-            <span><i class="fa-solid fa-hammer"></i> FAÇA VOCÊ MESMO</span>
+            <span class="hidden sm:inline"><i class="fa-solid fa-hammer"></i> FAÇA VOCÊ MESMO</span>
         </div>
     </footer>
 
+    {% if request.user.is_authenticated %}
+    {# ---------- Barra inferior estilo app (so no celular) ---------- #}
+    <nav class="barra-inferior lg:hidden" aria-label="Navegação principal">
+        <a href="{% url 'core:dashboard' %}" class="item-barra {% if request.resolver_match.app_name == 'core' %}ativo{% endif %}">
+            <i class="fa-solid fa-gauge-high"></i><span>Início</span>
+        </a>
+        <a href="{% url 'inventario:lista_itens' %}" class="item-barra {% if request.resolver_match.app_name == 'inventario' %}ativo{% endif %}">
+            <i class="fa-solid fa-boxes-stacked"></i><span>Inventário</span>
+        </a>
+        <a href="{% url 'projetos:kanban' %}" class="item-barra {% if request.resolver_match.app_name == 'projetos' %}ativo{% endif %}">
+            <i class="fa-solid fa-diagram-project"></i><span>Projetos</span>
+        </a>
+        <a href="{% url 'agenda:calendario' %}" class="item-barra {% if request.resolver_match.app_name == 'agenda' %}ativo{% endif %}">
+            <i class="fa-solid fa-calendar-days"></i><span>Agenda</span>
+        </a>
+        <a href="{% url 'usuarios:lista_membros' %}" class="item-barra {% if request.resolver_match.url_name == 'lista_membros' %}ativo{% endif %}">
+            <i class="fa-solid fa-users"></i><span>Membros</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <script src="{% static 'js/mobile.js' %}?v=1" defer></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -16,6 +16,9 @@ class Usuario(AbstractUser):
 
     matricula = models.CharField('Matrícula', max_length=20, unique=True)
     tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.MEMBRO)
+    foto = models.ImageField('Foto de perfil', upload_to='perfis/', null=True, blank=True)
+    biografia = models.TextField('Biografia', max_length=500, blank=True)
+    lattes = models.URLField('Currículo Lattes', max_length=200, blank=True)
     status_cadastro = models.CharField(
         'Status do cadastro', max_length=10,
         choices=StatusCadastro.choices, default=StatusCadastro.APROVADO
@@ -35,6 +38,12 @@ class Usuario(AbstractUser):
     @property
     def is_pendente(self):
         return self.status_cadastro == self.StatusCadastro.PENDENTE
+
+    @property
+    def inicial(self):
+        """Letra usada no avatar quando o membro não tem foto."""
+        nome = self.first_name.strip() or self.username
+        return nome[:1].upper()
 
     def aprovar(self, coordenador):
         self.status_cadastro = self.StatusCadastro.APROVADO

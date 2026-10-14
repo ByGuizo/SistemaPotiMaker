@@ -1,13 +1,13 @@
 {% load potimaker_tags %}
 <div class="card-pop stagger-item border-2 border-black bg-white p-3 mb-3" style="--i:{{ forloop.counter0 }}">
     <div class="flex justify-between items-start mb-1 gap-2">
-        <div>
+        <div class="min-w-0">
             <p class="text-xs font-bold text-fuchsia-600 flex items-center gap-1 mb-0.5">
                 <i class="fa-solid fa-folder"></i> {{ atividade.projeto.nome }}
             </p>
-            <p class="font-black font-display">{{ atividade.nome }}</p>
+            <p class="font-black font-display break-words">{{ atividade.nome }}</p>
         </div>
-        <span class="{% if atividade.prioridade == 'ALTA' %}pulse-soft{% endif %}">
+        <span class="shrink-0 {% if atividade.prioridade == 'ALTA' %}pulse-soft{% endif %}">
             {% badge atividade.prioridade "prioridade" atividade.get_prioridade_display %}
         </span>
     </div>
@@ -32,24 +32,24 @@
             {% if atividade.status != "A_FAZER" %}
             <form method="post" action="{% url 'projetos:mover_atividade' atividade.pk 'tras' %}" hx-post="{% url 'projetos:mover_atividade' atividade.pk 'tras' %}" hx-target="#kanban-colunas" hx-swap="outerHTML">
                 {% csrf_token %}
-                <button type="submit" class="btn-pop border-2 border-black px-2 py-1 bg-white"><i class="fa-solid fa-arrow-left"></i></button>
+                <button type="submit" class="btn-pop alvo-toque border-2 border-black px-3 py-1 bg-white"><i class="fa-solid fa-arrow-left"></i></button>
             </form>
             {% endif %}
             {% if atividade.status != "CONCLUIDO" %}
             <form method="post" action="{% url 'projetos:mover_atividade' atividade.pk 'frente' %}" hx-post="{% url 'projetos:mover_atividade' atividade.pk 'frente' %}" hx-target="#kanban-colunas" hx-swap="outerHTML">
                 {% csrf_token %}
-                <button type="submit" class="btn-pop border-2 border-black px-2 py-1 bg-white"><i class="fa-solid fa-arrow-right"></i></button>
+                <button type="submit" class="btn-pop alvo-toque border-2 border-black px-3 py-1 bg-white"><i class="fa-solid fa-arrow-right"></i></button>
             </form>
             {% endif %}
         </div>
         <div class="flex gap-1">
             {% if request.user.is_authenticated %}
-            <a href="{% url 'projetos:editar_atividade' atividade.pk %}" class="btn-pop bg-yellow-300 border-2 border-black px-2 py-1"><i class="fa-solid fa-pen"></i></a>
+            <a href="{% url 'projetos:editar_atividade' atividade.pk %}" class="btn-pop alvo-toque bg-yellow-300 border-2 border-black px-3 py-1"><i class="fa-solid fa-pen"></i></a>
             {% endif %}
             {% if request.user.is_authenticated and request.user.is_coordenador %}
             <form method="post" action="{% url 'projetos:excluir_atividade' atividade.pk %}" onsubmit="return confirm('Excluir esta atividade?');">
                 {% csrf_token %}
-                <button type="submit" class="btn-pop bg-red-400 border-2 border-black px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                <button type="submit" class="btn-pop alvo-toque bg-red-400 border-2 border-black px-3 py-1"><i class="fa-solid fa-trash"></i></button>
             </form>
             {% endif %}
         </div>

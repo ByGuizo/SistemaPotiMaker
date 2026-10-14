@@ -3,26 +3,26 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <a href="{% url 'usuarios:lista_membros' %}" class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-5 relative overflow-hidden" style="--i:0">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+    <a href="{% url 'usuarios:lista_membros' %}" class="card-pop stagger-item border-2 border-black bg-purple-500 text-white p-3 sm:p-5 relative overflow-hidden" style="--i:0">
         <i class="fa-solid fa-users absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
-        <p class="text-4xl font-black font-display counter-value">{{ qtd_membros_ativos }}</p>
-        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-user-check"></i> MEMBROS ATIVOS</p>
+        <p class="text-3xl sm:text-4xl font-black font-display counter-value">{{ qtd_membros_ativos }}</p>
+        <p class="text-[10px] sm:text-xs font-bold mt-1 flex items-start gap-1 leading-tight"><i class="fa-solid fa-user-check"></i> MEMBROS ATIVOS</p>
     </a>
-    <a href="{% url 'projetos:kanban' %}" class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-5 relative overflow-hidden" style="--i:1">
+    <a href="{% url 'projetos:kanban' %}" class="card-pop stagger-item border-2 border-black bg-fuchsia-500 text-white p-3 sm:p-5 relative overflow-hidden" style="--i:1">
         <i class="fa-solid fa-diagram-project absolute -right-3 -bottom-3 text-6xl text-white/20"></i>
-        <p class="text-4xl font-black font-display counter-value">{{ qtd_projetos_andamento }}</p>
-        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-spinner"></i> PROJETOS EM ANDAMENTO</p>
+        <p class="text-3xl sm:text-4xl font-black font-display counter-value">{{ qtd_projetos_andamento }}</p>
+        <p class="text-[10px] sm:text-xs font-bold mt-1 flex items-start gap-1 leading-tight"><i class="fa-solid fa-spinner"></i> PROJETOS EM ANDAMENTO</p>
     </a>
-    <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-5 relative overflow-hidden" style="--i:2">
+    <a href="{% url 'inventario:lista_itens' %}" class="card-pop stagger-item border-2 border-black bg-yellow-300 p-3 sm:p-5 relative overflow-hidden" style="--i:2">
         <i class="fa-solid fa-boxes-stacked absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
-        <p class="text-4xl font-black font-display counter-value">{{ qtd_itens_inventario }}</p>
-        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-warehouse"></i> ITENS NO INVENTÁRIO</p>
+        <p class="text-3xl sm:text-4xl font-black font-display counter-value">{{ qtd_itens_inventario }}</p>
+        <p class="text-[10px] sm:text-xs font-bold mt-1 flex items-start gap-1 leading-tight"><i class="fa-solid fa-warehouse"></i> ITENS NO INVENTÁRIO</p>
     </a>
-    <a href="{% url 'agenda:calendario' %}" class="card-pop stagger-item border-2 border-black bg-emerald-400 p-5 relative overflow-hidden" style="--i:3">
+    <a href="{% url 'agenda:calendario' %}" class="card-pop stagger-item border-2 border-black bg-emerald-400 p-3 sm:p-5 relative overflow-hidden" style="--i:3">
         <i class="fa-solid fa-calendar-days absolute -right-3 -bottom-3 text-6xl text-black/10"></i>
-        <p class="text-4xl font-black font-display counter-value">{{ qtd_eventos_semana }}</p>
-        <p class="text-xs font-bold mt-1 flex items-center gap-1"><i class="fa-solid fa-clock"></i> EVENTOS ESTA SEMANA</p>
+        <p class="text-3xl sm:text-4xl font-black font-display counter-value">{{ qtd_eventos_semana }}</p>
+        <p class="text-[10px] sm:text-xs font-bold mt-1 flex items-start gap-1 leading-tight"><i class="fa-solid fa-clock"></i> EVENTOS ESTA SEMANA</p>
     </a>
 </div>
 
@@ -37,7 +37,7 @@
         <div class="card-pop border-2 border-black bg-white h-full flex flex-col">
             <div class="bg-fuchsia-500 text-white px-4 py-2 font-black flex items-center gap-2 justify-between">
                 <span class="flex items-center gap-2"><i class="fa-solid fa-list-check"></i> MINHAS ATIVIDADES</span>
-                <a href="{% url 'projetos:kanban' %}" class="text-xs opacity-80 hover:opacity-100 flex items-center gap-1">
+                <a href="{% url 'projetos:kanban' %}" class="text-xs opacity-80 hover:opacity-100 flex items-center gap-1 py-2 px-1">
                     VER KANBAN <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>

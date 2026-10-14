@@ -5,9 +5,9 @@
 
 <div class="flex items-center justify-between mb-4 flex-wrap gap-2 anim-fade-up">
     <span class="inline-flex items-center gap-2 bg-fuchsia-500 text-white font-black px-4 py-2 border-2 border-black rotate-badge">
-        <i class="fa-solid fa-user-clock"></i> EDITAR ESCALA DE HORÁRIOS
+        <i class="fa-solid fa-user-clock"></i> <span class="hidden sm:inline">EDITAR</span> ESCALA
     </span>
-    <a href="{% url 'core:dashboard' %}" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
+    <a href="{% url 'core:dashboard' %}" class="btn-pop alvo-toque inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
         <i class="fa-solid fa-xmark"></i> CANCELAR
     </a>
 </div>
@@ -19,75 +19,120 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-black">
         <div class="p-4 flex items-start gap-3">
             <span class="w-7 h-7 shrink-0 bg-yellow-300 border-2 border-black flex items-center justify-center font-black text-sm">1</span>
-            <p class="text-xs leading-relaxed"><strong class="font-black">Digite o nome</strong> na célula — o restante completa sozinho enquanto você escreve.</p>
+            <p class="text-xs leading-relaxed"><strong class="font-black">Digite o nome</strong> — o restante completa sozinho enquanto você escreve.</p>
         </div>
         <div class="p-4 flex items-start gap-3">
             <span class="w-7 h-7 shrink-0 bg-cyan-400 border-2 border-black flex items-center justify-center font-black text-sm">2</span>
             <p class="text-xs leading-relaxed">
                 <kbd class="px-1.5 py-0.5 border-2 border-black bg-white font-black text-[10px]">Enter</kbd>
-                ou
-                <kbd class="px-1.5 py-0.5 border-2 border-black bg-white font-black text-[10px]">Tab</kbd>
                 <strong class="font-black">adiciona</strong> e limpa o campo para o próximo.
             </p>
         </div>
         <div class="p-4 flex items-start gap-3">
             <span class="w-7 h-7 shrink-0 bg-emerald-400 border-2 border-black flex items-center justify-center font-black text-sm">3</span>
-            <p class="text-xs leading-relaxed">Repita para quantos quiser. Para tirar alguém, clique no <i class="fa-solid fa-xmark"></i> ou use <kbd class="px-1.5 py-0.5 border-2 border-black bg-white font-black text-[10px]">Backspace</kbd>.</p>
+            <p class="text-xs leading-relaxed">Para tirar alguém, toque no <i class="fa-solid fa-xmark"></i> do nome.</p>
         </div>
     </div>
 </div>
 
-<form method="post" class="card-pop border-2 border-black bg-white anim-fade-up">
+<form method="post" id="form-escala" class="anim-fade-up">
     {% csrf_token %}
-    <div class="overflow-x-auto overflow-y-visible">
-        <table class="w-full min-w-[980px]">
-            <thead>
-                <tr class="bg-black text-white text-left text-sm">
-                    <th class="px-3 py-3 whitespace-nowrap font-display"><i class="fa-regular fa-clock"></i> HORÁRIO</th>
-                    {% for dia_valor, dia_label in dias %}
-                    <th class="px-3 py-3 font-display">{{ dia_label|upper }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody class="divide-y-2 divide-black">
-                {% for linha in linhas %}
-                <tr class="{% if linha.slot|slice:':1' == 'M' %}bg-emerald-50{% else %}bg-yellow-50{% endif %}">
-                    <td class="px-3 py-3 border-r-2 border-black whitespace-nowrap align-top">
-                        <span class="inline-flex items-center gap-2 px-2 py-1 border-2 border-black font-bold text-xs
-                            {% if linha.slot|slice:':1' == 'M' %}bg-emerald-400{% else %}bg-yellow-300{% endif %}">
-                            <i class="fa-solid {% if linha.slot|slice:':1' == 'M' %}fa-sun{% else %}fa-cloud-sun{% endif %}"></i>
-                            {{ linha.label }}
-                        </span>
-                    </td>
-                    {% for horario in linha.dias %}
-                    <td class="px-2 py-2 border-r-2 border-black last:border-r-0 align-top min-w-[190px]">
-                        <div class="multi-select"
-                             data-nome="celula_{{ forloop.counter0 }}_{{ linha.slot }}"
-                             data-placeholder="Digite um nome...">
-                            <script type="application/json" class="multi-select-dados">
-                                [{% for membro in membros %}{"id": "{{ membro.pk }}", "texto": "{{ membro|escapejs }}", "selecionado": {% if horario and membro in horario.membros.all %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]
-                            </script>
-                        </div>
-                        <noscript>
-                            <select name="celula_{{ forloop.counter0 }}_{{ linha.slot }}" multiple size="4"
-                                    class="w-full border-2 border-black px-2 py-1 text-xs">
-                                {% for membro in membros %}
-                                <option value="{{ membro.pk }}" {% if horario and membro in horario.membros.all %}selected{% endif %}>{{ membro }}</option>
-                                {% endfor %}
-                            </select>
-                        </noscript>
-                    </td>
-                    {% endfor %}
-                </tr>
+
+    {% comment %}
+    Celular: um bloco por dia. As duas versões usam o MESMO name
+    (celula_<dia>_<slot>); para o POST não enviar valores duplicados,
+    static/js/escala-mobile.js remove do DOM a versão que não está visível
+    antes do submit.
+    {% endcomment %}
+    <div id="escala-mobile" class="lg:hidden space-y-4">
+        {% for dia in grade_dias %}
+        <div class="card-pop border-2 border-black bg-white overflow-hidden">
+            <div class="bg-black text-white px-4 py-3 font-black font-display flex items-center gap-2">
+                <i class="fa-regular fa-calendar"></i> {{ dia.label|upper }}
+            </div>
+            <div class="divide-y-2 divide-black">
+                {% for s in dia.slots %}
+                <div class="p-3 {% if s.slot|slice:':1' == 'M' %}bg-emerald-50{% else %}bg-yellow-50{% endif %}">
+                    <span class="inline-flex items-center gap-2 px-2 py-1 mb-2 border-2 border-black font-bold text-xs
+                        {% if s.slot|slice:':1' == 'M' %}bg-emerald-400{% else %}bg-yellow-300{% endif %}">
+                        <i class="fa-solid {% if s.slot|slice:':1' == 'M' %}fa-sun{% else %}fa-cloud-sun{% endif %}"></i>
+                        {{ s.label }}
+                    </span>
+                    <div class="multi-select"
+                         data-nome="celula_{{ dia.valor }}_{{ s.slot }}"
+                         data-placeholder="Digite um nome...">
+                        <script type="application/json" class="multi-select-dados">
+                            [{% for membro in membros %}{"id": "{{ membro.pk }}", "texto": "{{ membro|escapejs }}", "selecionado": {% if s.horario and membro in s.horario.membros.all %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]
+                        </script>
+                    </div>
+                    <noscript>
+                        <select name="celula_{{ dia.valor }}_{{ s.slot }}" multiple size="4"
+                                class="w-full border-2 border-black px-2 py-1 text-sm">
+                            {% for membro in membros %}
+                            <option value="{{ membro.pk }}" {% if s.horario and membro in s.horario.membros.all %}selected{% endif %}>{{ membro }}</option>
+                            {% endfor %}
+                        </select>
+                    </noscript>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    <div class="flex gap-2 justify-end p-4 border-t-2 border-black bg-white">
-        <a href="{% url 'core:dashboard' %}" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
+
+    {# ---------- Desktop: grade completa ---------- #}
+    <div id="escala-desktop" class="hidden lg:block card-pop border-2 border-black bg-white">
+        <div class="overflow-x-auto overflow-y-visible">
+            <table class="w-full min-w-[980px]">
+                <thead>
+                    <tr class="bg-black text-white text-left text-sm">
+                        <th class="px-3 py-3 whitespace-nowrap font-display"><i class="fa-regular fa-clock"></i> HORÁRIO</th>
+                        {% for dia_valor, dia_label in dias %}
+                        <th class="px-3 py-3 font-display">{{ dia_label|upper }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y-2 divide-black">
+                    {% for linha in linhas %}
+                    <tr class="{% if linha.slot|slice:':1' == 'M' %}bg-emerald-50{% else %}bg-yellow-50{% endif %}">
+                        <td class="px-3 py-3 border-r-2 border-black whitespace-nowrap align-top">
+                            <span class="inline-flex items-center gap-2 px-2 py-1 border-2 border-black font-bold text-xs
+                                {% if linha.slot|slice:':1' == 'M' %}bg-emerald-400{% else %}bg-yellow-300{% endif %}">
+                                <i class="fa-solid {% if linha.slot|slice:':1' == 'M' %}fa-sun{% else %}fa-cloud-sun{% endif %}"></i>
+                                {{ linha.label }}
+                            </span>
+                        </td>
+                        {% for horario in linha.dias %}
+                        <td class="px-2 py-2 border-r-2 border-black last:border-r-0 align-top min-w-[190px]">
+                            <div class="multi-select"
+                                 data-nome="celula_{{ forloop.counter0 }}_{{ linha.slot }}"
+                                 data-placeholder="Digite um nome...">
+                                <script type="application/json" class="multi-select-dados">
+                                    [{% for membro in membros %}{"id": "{{ membro.pk }}", "texto": "{{ membro|escapejs }}", "selecionado": {% if horario and membro in horario.membros.all %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]
+                                </script>
+                            </div>
+                            <noscript>
+                                <select name="celula_{{ forloop.counter0 }}_{{ linha.slot }}" multiple size="4"
+                                        class="w-full border-2 border-black px-2 py-1 text-xs">
+                                    {% for membro in membros %}
+                                    <option value="{{ membro.pk }}" {% if horario and membro in horario.membros.all %}selected{% endif %}>{{ membro }}</option>
+                                    {% endfor %}
+                                </select>
+                            </noscript>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex gap-2 justify-end p-4 mt-4 border-2 border-black bg-white card-pop">
+        <a href="{% url 'core:dashboard' %}" class="btn-pop alvo-toque inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-white">
             <i class="fa-solid fa-xmark"></i> CANCELAR
         </a>
-        <button type="submit" class="btn-pop inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-emerald-400">
+        <button type="submit" class="btn-pop alvo-toque inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold bg-emerald-400">
             <i class="fa-solid fa-floppy-disk"></i> SALVAR
         </button>
     </div>
@@ -97,4 +142,5 @@
 
 {% block scripts %}
 <script src="{% static 'js/multi-select.js' %}?v=4"></script>
+<script src="{% static 'js/escala-mobile.js' %}?v=1"></script>
 {% endblock %}

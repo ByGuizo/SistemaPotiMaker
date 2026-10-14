@@ -10,6 +10,7 @@ class UsuarioAdmin(UserAdmin):
         ('PotiMaker', {
             'fields': ('matricula', 'tipo', 'status_cadastro', 'criado_por', 'aprovado_por', 'aprovado_em')
         }),
+        ('Perfil', {'fields': ('foto', 'biografia', 'lattes')}),
     )
     readonly_fields = ('aprovado_em',)
     list_display = ('username', 'first_name', 'matricula', 'tipo', 'status_cadastro', 'is_active')

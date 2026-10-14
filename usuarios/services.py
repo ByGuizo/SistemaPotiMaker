@@ -54,6 +54,7 @@ def escala_atual():
 
 
 def grade_horarios():
+    """Matriz para o desktop: linhas = slots, colunas = dias."""
     horarios = HorarioEscala.objects.prefetch_related('membros').all()
     mapa = {(h.dia_semana, h.slot): h for h in horarios}
 
@@ -64,3 +65,26 @@ def grade_horarios():
             linha['dias'].append(mapa.get((dia_valor, slot_valor)))
         linhas.append(linha)
     return linhas
+
+
+def grade_por_dia():
+    """
+    Mesma escala agrupada por dia, para o celular.
+
+    A grade 5x6 do desktop obrigaria a rolar ~980px na horizontal no telefone;
+    empilhada por dia cada célula ocupa a largura toda e fica utilizável.
+    O nome do campo (`celula_<dia>_<slot>`) é o mesmo nas duas versões, então
+    `editar_horarios` continua lendo do mesmo jeito.
+    """
+    horarios = HorarioEscala.objects.prefetch_related('membros').all()
+    mapa = {(h.dia_semana, h.slot): h for h in horarios}
+
+    dias = []
+    for dia_valor, dia_label in HorarioEscala.DiaSemana.choices:
+        slots = [
+            {'slot': slot_valor, 'label': slot_label,
+             'horario': mapa.get((dia_valor, slot_valor))}
+            for slot_valor, slot_label in HorarioEscala.Slot.choices
+        ]
+        dias.append({'valor': dia_valor, 'label': dia_label, 'slots': slots})
+    return dias
